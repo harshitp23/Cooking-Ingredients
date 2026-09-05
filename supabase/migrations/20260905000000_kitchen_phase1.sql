@@ -2,7 +2,8 @@
 -- Kitchen Inventory app — Phase 1 schema
 -- Paste this whole file into the Supabase SQL editor and run it once.
 --
--- Auth model (see notes at bottom): standard Supabase Auth.
+-- Auth model (see notes at bottom): standard Supabase Auth, email + password
+-- (same as the personal-wardrobe app in this project).
 --   user_id defaults to auth.uid() and every RLS policy is auth.uid() = user_id.
 --
 -- Phase 2 (recipes / "what can I make") only ADDS columns and rows to the
@@ -183,11 +184,10 @@ create policy kitchen_recipe_items_delete on public.kitchen_recipe_items
 -- ============================================================================
 -- NOTES
 --
--- Auth: this assumes the same Supabase Auth setup your other apps use — a real
--- authenticated session, with RLS keyed on auth.uid(). The frontend will use
--- email magic-link / OTP sign-in (no password, works well as an iOS PWA).
--- If your other apps instead use a single hardcoded user_id + the anon key,
--- tell me and I'll swap the policies before you run this.
+-- Auth: same setup as the personal-wardrobe app in this Supabase project —
+-- Supabase Auth with an email + password login screen, RLS keyed on auth.uid().
+-- These kitchen_ tables share auth.users with the other apps in the project;
+-- the kitchen_ prefix + per-table RLS keeps everything else isolated.
 --
 -- Phase-2 additions that will NOT require touching anything above:
 --   alter table public.kitchen_recipes add column servings int;
