@@ -3,7 +3,7 @@
    (grocery-store use case). Supabase API traffic is never cached — those
    requests hit the network and, when they fail, the app's own write queue
    takes over. */
-const CACHE = 'kitchen-shell-v1';
+const CACHE = 'kitchen-shell-v2';
 const SHELL = [
   './',
   './index.html',
