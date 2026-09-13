@@ -225,6 +225,10 @@
     border: none; border-radius: 8px; background: transparent;
   }
   .rd-name:focus { background: var(--surface); outline: 1px solid var(--border); }
+  .rd-category {
+    width: 100%; font-size: 13px; padding: 8px 10px; margin: 0 0 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
+  }
   #rcook-name { font-size: 22px; font-weight: 700; padding: 8px 6px; margin: 4px 0 12px; }
 
   .rd-line {
@@ -406,6 +410,8 @@
   </header>
   <div class="rd-body">
     <input id="rd-name" class="rd-name" type="text" aria-label="Recipe name">
+    <input id="rd-category" class="rd-category" type="text" list="recipe-cat-list"
+           placeholder="Category — breakfast, lunch, dinner, snacks, sauces…">
 
     <h2 class="sec">Ingredients</h2>
     <div id="rd-lines"></div>
@@ -468,6 +474,7 @@
 </div>
 
 <datalist id="ing-list"></datalist>
+<datalist id="recipe-cat-list"></datalist>
 
 <div id="toast" hidden>
   <span class="toast-msg"></span>
@@ -496,10 +503,11 @@
   };
   var COLS = {};
   COLS[T_ITEMS] = ['id', 'user_id', 'name', 'kind', 'state', 'category', 'is_staple', 'notes'];
-  COLS[T_RECIPES] = ['id', 'user_id', 'name', 'notes', 'instructions', 'servings'];
+  COLS[T_RECIPES] = ['id', 'user_id', 'name', 'notes', 'instructions', 'servings', 'category'];
   COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'display_qty', 'sort_order'];
 
   var STATE_CYCLE = ['have', 'low', 'out'];
+  var DEFAULT_RECIPE_CATEGORIES = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
 
   // ----------------------------------------------------------------- state
   var state = {
@@ -508,7 +516,7 @@
     recipes: [],
     recipeItems: [],
     queue: [],
-    ui: { tab: 'inventory', collapsed: {}, cookFilter: 'all' },
+    ui: { tab: 'inventory', collapsed: {}, collapsedRecipes: {}, cookFilter: 'all' },
     session: null,
     online: (typeof navigator !== 'undefined' && 'onLine' in navigator) ? navigator.onLine : true,
     syncing: false
@@ -568,6 +576,7 @@
     state.ui = {
       tab: ui.tab || 'inventory',
       collapsed: ui.collapsed || {},
+      collapsedRecipes: ui.collapsedRecipes || {},
       cookFilter: ui.cookFilter || 'all'
     };
   }
@@ -649,7 +658,7 @@
 
   function cookList(filter) {
     var rows = state.recipes.map(function (r) {
-      return { id: r.id, name: r.name,
+      return { id: r.id, name: r.name, category: r.category || null,
                status: recipeStatus(r, state.recipeItems, state.items) };
     });
     if (filter === 'makeable') rows = rows.filter(function (x) { return x.status.makeable; });
@@ -659,6 +668,21 @@
       return a.name.localeCompare(b.name);
     });
     return rows;
+  }
+
+  // Groups cookList() rows by category (Uncategorized last), preserving the
+  // makeable-first ordering cookList already applied within each group.
+  function groupRecipeRows(rows) {
+    var groups = {};
+    (rows || []).forEach(function (r) {
+      var key = (r.category && String(r.category).trim()) || 'Uncategorized';
+      (groups[key] || (groups[key] = [])).push(r);
+    });
+    return Object.keys(groups).sort(function (a, b) {
+      if (a === 'Uncategorized') return 1;
+      if (b === 'Uncategorized') return -1;
+      return a.localeCompare(b);
+    }).map(function (name) { return { name: name, rows: groups[name] }; });
   }
 
   // Apply queued writes on top of a base list for one table. Idempotent:
@@ -960,7 +984,7 @@
     name = (name || '').trim();
     if (!name) return null;
     var r = { id: uuid(), user_id: uid(), name: name, notes: null, instructions: null,
-              servings: null, created_at: iso(), updated_at: iso() };
+              servings: null, category: null, created_at: iso(), updated_at: iso() };
     state.recipes.push(r);
     persist('recipes'); renderAll();
     enqueue({ table: T_RECIPES, kind: 'insert', row: cloneRow(r) });
@@ -1134,6 +1158,7 @@
       renderSync();
       renderTabs();
       fillIngredientList();
+      fillRecipeCategoryList();
     } catch (e) { /* jsdom / detached DOM during tests */ }
   }
 
@@ -1219,26 +1244,36 @@
         '</div>';
       return;
     }
-    host.innerHTML = rows.map(function (r) {
-      var st = r.status;
-      var badge = st.makeable
-        ? '<span class="tag have">' + (st.low.length ? 'Low on ' + st.low.length : 'Ready') + '</span>'
-        : '<span class="tag out">Need ' + st.missing.length + '</span>';
-      var meta = [
-        r.status.total + ' ingredient' + (r.status.total === 1 ? '' : 's'),
-        !st.makeable && st.missing.length ? 'missing: ' + st.missing.join(', ') : null
-      ].filter(Boolean).join(' · ');
-      var menuOpen = openMenuId === r.id;
-      return '<div class="recipe-card">' +
-        '<button class="rc-open" data-act="open-cook" data-id="' + r.id + '">' +
-        '<span class="rc-name">' + esc(r.name) + '</span>' + badge +
-        '<span class="rc-meta">' + esc(meta) + '</span></button>' +
-        '<button class="kebab" data-act="toggle-menu" data-id="' + r.id + '">⋮</button>' +
-        '<div class="menu"' + (menuOpen ? '' : ' hidden') + '>' +
-        '<button data-act="edit-recipe" data-id="' + r.id + '">Edit</button>' +
-        '<button class="danger" data-act="delete-recipe" data-id="' + r.id + '">Delete</button>' +
-        '</div></div>';
+    var groups = groupRecipeRows(rows);
+    host.innerHTML = groups.map(function (g) {
+      var collapsed = !!state.ui.collapsedRecipes[g.name];
+      return '<div class="group' + (collapsed ? ' collapsed' : '') + '">' +
+        '<button class="group-head" data-act="toggle-recipe-group" data-group="' + esc(g.name) + '">' +
+        '<span class="chev">▼</span>' + esc(g.name) +
+        '<span class="group-count">' + g.rows.length + '</span></button>' +
+        '<div class="rows">' + g.rows.map(recipeCard).join('') + '</div></div>';
     }).join('');
+  }
+
+  function recipeCard(r) {
+    var st = r.status;
+    var badge = st.makeable
+      ? '<span class="tag have">' + (st.low.length ? 'Low on ' + st.low.length : 'Ready') + '</span>'
+      : '<span class="tag out">Need ' + st.missing.length + '</span>';
+    var meta = [
+      r.status.total + ' ingredient' + (r.status.total === 1 ? '' : 's'),
+      !st.makeable && st.missing.length ? 'missing: ' + st.missing.join(', ') : null
+    ].filter(Boolean).join(' · ');
+    var menuOpen = openMenuId === r.id;
+    return '<div class="recipe-card">' +
+      '<button class="rc-open" data-act="open-cook" data-id="' + r.id + '">' +
+      '<span class="rc-name">' + esc(r.name) + '</span>' + badge +
+      '<span class="rc-meta">' + esc(meta) + '</span></button>' +
+      '<button class="kebab" data-act="toggle-menu" data-id="' + r.id + '">⋮</button>' +
+      '<div class="menu"' + (menuOpen ? '' : ' hidden') + '>' +
+      '<button data-act="edit-recipe" data-id="' + r.id + '">Edit</button>' +
+      '<button class="danger" data-act="delete-recipe" data-id="' + r.id + '">Delete</button>' +
+      '</div></div>';
   }
 
   function renderRecipeViews() {
@@ -1264,6 +1299,8 @@
     var active = document.activeElement;
     var nameEl = $('#rd-name');
     if (nameEl && active !== nameEl) nameEl.value = r.name;
+    var catEl = $('#rd-category');
+    if (catEl && active !== catEl) catEl.value = r.category || '';
 
     var st = recipeStatus(r, state.recipeItems, state.items);
     var pill = $('#rd-status');
@@ -1380,6 +1417,14 @@
     var names = state.items.filter(function (i) { return i.kind === 'ingredient'; })
       .map(function (i) { return i.name; }).sort();
     dl.innerHTML = names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
+  }
+  function fillRecipeCategoryList() {
+    var dl = $('#recipe-cat-list');
+    if (!dl) return;
+    var seen = {};
+    DEFAULT_RECIPE_CATEGORIES.forEach(function (c) { seen[c] = true; });
+    state.recipes.forEach(function (r) { if (r.category) seen[r.category] = true; });
+    dl.innerHTML = Object.keys(seen).sort().map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
   }
 
   // --------------------------------------------------------- edit sheet
@@ -1514,6 +1559,13 @@
       var v = rdName.value.trim();
       if (openRecipeId && v) editRecipe(openRecipeId, { name: v });
     });
+    var rdCategory = $('#rd-category');
+    if (rdCategory) rdCategory.addEventListener('change', function () {
+      if (!openRecipeId) return;
+      var v = rdCategory.value.trim() || null;
+      var cur = (recipeById(openRecipeId) || {}).category || null;
+      if (v !== cur) editRecipe(openRecipeId, { category: v });
+    });
     var rdAddName = $('#rd-add-name'), rdAddQty = $('#rd-add-qty'), rdAddGo = $('#rd-add-go');
     var doAddLine = function () {
       if (!openRecipeId || !rdAddName.value.trim()) return;
@@ -1580,6 +1632,11 @@
       var g = el.getAttribute('data-group');
       state.ui.collapsed[g] = !state.ui.collapsed[g];
       persist('ui'); renderInventory();
+    }
+    else if (act === 'toggle-recipe-group') {
+      var rg = el.getAttribute('data-group');
+      state.ui.collapsedRecipes[rg] = !state.ui.collapsedRecipes[rg];
+      persist('ui'); renderCook();
     }
     else if (act === 'toggle-menu') {
       openMenuId = (openMenuId === id) ? null : id;
@@ -1697,6 +1754,7 @@
     groupIngredients: groupIngredients,
     recipeStatus: recipeStatus,
     cookList: cookList,
+    groupRecipeRows: groupRecipeRows,
     applyOps: applyOps,
     coalesce: coalesce,
     queueFor: queueFor,
