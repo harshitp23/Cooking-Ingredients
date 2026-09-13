@@ -220,6 +220,7 @@
   #recipe-edit header, #recipe-cook header { position: sticky; top: 0; }
   #recipe-edit .rd-body, #recipe-cook .rd-body { padding: 14px 14px calc(40px + var(--safe-bottom)); }
   #rd-back, #rcook-back { font-size: 15px; color: var(--accent); margin-right: auto; font-weight: 600; }
+  .save-btn { background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 999px; }
   .rd-name {
     width: 100%; font-size: 22px; font-weight: 700; padding: 8px 6px; margin: 4px 0;
     border: none; border-radius: 8px; background: transparent;
@@ -251,25 +252,56 @@
   .rd-addline #rd-add-qty { width: 110px; }
   .rd-addline #rd-add-go { background: var(--accent); color: #fff; font-weight: 600; padding: 11px 16px; border-radius: 10px; }
 
-  .step-line {
-    position: relative; display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 8px 6px 8px 4px; margin-bottom: 6px;
+  /* ---- Method: sections + drag-reorderable steps ---- */
+  .method-section {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 4px; margin-bottom: 10px; transition: transform .12s ease;
   }
-  .step-line .step-num { flex: none; width: 22px; text-align: center; color: var(--text-dim); font-weight: 700; font-size: 13px; }
-  .step-line .step-text { flex: 1; min-width: 0; font-size: 15px; padding: 6px 4px; }
-  .step-line .step-edit-input {
+  .method-section.dragging { box-shadow: 0 10px 26px rgba(0,0,0,.18); z-index: 20; position: relative; }
+  .section-head { position: relative; display: flex; align-items: center; gap: 2px; padding: 4px 2px; }
+  .section-head .section-name {
+    flex: 1; min-width: 0; font-weight: 700; font-size: 13px; padding: 8px 6px;
+    text-transform: uppercase; letter-spacing: .03em; color: var(--text-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .section-head .section-name.ph { font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .7; }
+  .section-name-edit-input {
+    flex: 1; min-width: 0; font-weight: 700; font-size: 14px; padding: 7px 8px;
+    border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
+  }
+  .drag-handle {
+    flex: none; padding: 6px; font-size: 16px; color: var(--text-dim);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+
+  .step-list { display: flex; flex-direction: column; }
+  .step-row {
+    position: relative; display: flex; align-items: center; gap: 2px;
+    background: var(--surface); border-radius: 10px; padding: 2px; transition: transform .12s ease;
+  }
+  .step-row.dragging { background: var(--surface-2); box-shadow: 0 6px 16px rgba(0,0,0,.15); z-index: 20; position: relative; }
+  .step-row .step-num { flex: none; width: 18px; text-align: center; color: var(--text-dim); font-weight: 700; font-size: 13px; }
+  .step-row .step-text { flex: 1; min-width: 0; font-size: 15px; padding: 8px 4px; }
+  .step-row .step-edit-input {
     flex: 1; min-width: 0; padding: 7px 8px; border-radius: 8px; font-size: 15px;
     border: 1px solid var(--border); background: var(--bg);
   }
-  .step-line .step-move { flex: none; color: var(--text-dim); font-size: 15px; padding: 6px 8px; }
-  .step-line .step-move:disabled { opacity: .3; }
-  .step-line .kebab { padding: 6px 8px; font-size: 18px; }
-  .step-addline { display: flex; gap: 6px; margin-top: 8px; }
+  .step-row .kebab { padding: 6px 8px; font-size: 18px; }
+
+  .step-addline { display: flex; gap: 6px; margin: 6px 4px 4px; }
   .step-addline input {
-    flex: 1; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+    flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg);
   }
-  .step-addline button { background: var(--accent); color: #fff; font-weight: 600; padding: 11px 16px; border-radius: 10px; }
+  .step-addline button { background: var(--accent); color: #fff; font-weight: 600; padding: 10px 14px; border-radius: 10px; }
+
+  .add-section-bar { display: flex; gap: 6px; margin-top: 4px; }
+  .add-section-bar input {
+    flex: 1; padding: 11px 12px; border-radius: 10px; border: 1px dashed var(--border); background: transparent;
+  }
+  .add-section-bar button {
+    padding: 11px 14px; border-radius: 10px; border: 1px dashed var(--accent);
+    color: var(--accent); font-weight: 700; white-space: nowrap;
+  }
 
   /* ---- Cooking mode (read-only) ---- */
   #rcook-lines .rcook-line {
@@ -277,13 +309,17 @@
     padding: 10px 4px; border-bottom: 1px solid var(--border); font-size: 15px;
   }
   #rcook-lines .rcook-line .qty { color: var(--text-dim); }
-  #rcook-steps { padding: 0; margin: 10px 0 0; list-style: none; counter-reset: step; }
-  #rcook-steps li {
+  .rcook-section-name {
+    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    color: var(--text-dim); margin: 14px 2px 6px;
+  }
+  .rcook-step-list { padding: 0; margin: 0 0 4px; list-style: none; counter-reset: step; }
+  .rcook-step-list li {
     counter-increment: step; position: relative; padding: 10px 8px 10px 40px;
     margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; font-size: 15px; line-height: 1.5;
   }
-  #rcook-steps li::before {
+  .rcook-step-list li::before {
     content: counter(step); position: absolute; left: 10px; top: 10px;
     font-weight: 700; color: var(--accent);
   }
@@ -407,6 +443,7 @@
     <button id="rd-back">‹ Cook</button>
     <span class="pill" id="rd-status"></span>
     <button class="linkbtn" id="rd-delete">Delete</button>
+    <button id="rd-save" class="save-btn">Save</button>
   </header>
   <div class="rd-body">
     <input id="rd-name" class="rd-name" type="text" aria-label="Recipe name">
@@ -422,11 +459,7 @@
     </div>
 
     <h2 class="sec">Method</h2>
-    <div id="rd-steps"></div>
-    <div class="step-addline">
-      <input id="rd-add-step" type="text" placeholder="Add a step…" enterkeyhint="done">
-      <button id="rd-add-step-go">Add</button>
-    </div>
+    <div id="rd-method"></div>
   </div>
 </div>
 
@@ -442,7 +475,7 @@
     <div id="rcook-lines"></div>
 
     <h2 class="sec">Method</h2>
-    <ol id="rcook-steps"></ol>
+    <div id="rcook-steps"></div>
   </div>
 </div>
 
@@ -507,7 +540,7 @@
   COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'display_qty', 'sort_order'];
 
   var STATE_CYCLE = ['have', 'low', 'out'];
-  var DEFAULT_RECIPE_CATEGORIES = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
+  var DEFAULT_RECIPE_CATEGORIES = ['Starter', 'Main', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
 
   // ----------------------------------------------------------------- state
   var state = {
@@ -526,8 +559,11 @@
   var openRecipeId = null;    // recipe currently open in edit or cook mode
   var openRecipeMode = null;  // 'edit' | 'cook'
   var openMenuId = null;      // recipe card whose kebab menu is open
-  var openStepMenuIdx = null; // method-step kebab menu open, by index
-  var editingStepIdx = null;  // method-step currently inline-editable, by index
+  var openSectionMenuId = null; // method-section kebab menu open, by section id
+  var openStepMenu = null;      // { sectionId, idx } of an open method-step kebab menu
+  var renamingSectionId = null; // method-section currently inline-renameable, by section id
+  var editingStep = null;       // { sectionId, idx } of a method-step currently inline-editable
+  var lastFocusAddStep = null;  // section id whose "add a step" input should regain focus post-render
   var justCreatedRecipeId = null; // freshly-created recipe: auto-focus its name field once
   var toastTimer = null;
   var flushGen = 0;          // bumped when the queue is wholesale replaced; aborts any in-flight flush
@@ -648,13 +684,37 @@
     };
   }
 
-  // Method steps are stored as one newline-separated text column
-  // (kitchen_recipes.instructions) but edited as discrete, sortable lines.
-  function stepsOf(recipe) {
-    return ((recipe && recipe.instructions) || '').split(/\r?\n/)
-      .map(function (s) { return s.trim(); }).filter(Boolean);
+  // Method is stored as one JSON-encoded column (kitchen_recipes.instructions,
+  // still just text — no schema change) holding an ordered list of named
+  // sections, each with its own ordered steps. e.g. for butter chicken:
+  //   [{name:'Marination', steps:[...]}, {name:'Gravy', steps:[...]}]
+  // Recipes saved by the older flat-textarea/step-list UI had instructions as
+  // plain newline-separated text; that's parsed here as one unnamed section
+  // so nothing existing needs a migration.
+  function sectionsOf(recipe) {
+    var raw = recipe && recipe.instructions;
+    if (!raw) return [];
+    try {
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map(function (s) {
+          return { id: s.id || uuid(), name: s.name || null, steps: Array.isArray(s.steps) ? s.steps.slice() : [] };
+        });
+      }
+    } catch (e) { /* not JSON -> legacy flat text, fall through */ }
+    var legacy = String(raw).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return legacy.length ? [{ id: uuid(), name: null, steps: legacy }] : [];
   }
-  function stepsToText(steps) { return steps.join('\n'); }
+  function sectionsToText(sections) { return sections.length ? JSON.stringify(sections) : null; }
+  function sectionByIdIn(sections, id) {
+    for (var i = 0; i < sections.length; i++) if (sections[i].id === id) return sections[i];
+    return null;
+  }
+  // Whether a section's own header/name should be shown: a single unnamed
+  // section (the common "just a flat list of steps" case) stays chrome-free.
+  function sectionNeedsHeader(section, allSections) {
+    return allSections.length > 1 || !!section.name;
+  }
 
   function cookList(filter) {
     var rows = state.recipes.map(function (r) {
@@ -1082,47 +1142,113 @@
   }
 
   // ------------------------------------------------------ actions: method
-  // Method steps live in one text column; each action rewrites it in full
-  // and goes through editRecipe so it's optimistic, queued and undoable.
-  function addStep(recipeId, text) {
+  // Method sections live in one text column (JSON-encoded); each action
+  // rewrites it in full and goes through editRecipe so it's optimistic,
+  // queued and undoable.
+  function addMethodSection(recipeId, name) {
+    var r = recipeById(recipeId);
+    name = (name || '').trim();
+    if (!r || !name) return null;
+    var sections = sectionsOf(r);
+    var section = { id: uuid(), name: name, steps: [] };
+    sections.push(section);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) });
+    return section;
+  }
+
+  function renameMethodSection(recipeId, sectionId, name) {
+    var r = recipeById(recipeId);
+    if (!r) return;
+    var sections = sectionsOf(r);
+    var s = sectionByIdIn(sections, sectionId);
+    if (!s) return;
+    var newName = (name || '').trim() || null;
+    if (newName === s.name) return;
+    s.name = newName;
+    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Section renamed');
+  }
+
+  function removeMethodSection(recipeId, sectionId) {
+    var r = recipeById(recipeId);
+    if (!r) return;
+    var sections = sectionsOf(r);
+    var idx = -1;
+    for (var i = 0; i < sections.length; i++) if (sections[i].id === sectionId) { idx = i; break; }
+    if (idx === -1) return;
+    sections.splice(idx, 1);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Section removed');
+  }
+
+  function moveMethodSection(recipeId, fromIdx, toIdx) {
+    var r = recipeById(recipeId);
+    if (!r) return;
+    var sections = sectionsOf(r);
+    if (fromIdx < 0 || fromIdx >= sections.length || toIdx < 0 || toIdx >= sections.length || fromIdx === toIdx) return;
+    var moved = sections.splice(fromIdx, 1)[0];
+    sections.splice(toIdx, 0, moved);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) });
+  }
+
+  // sectionId === null targets (and lazily creates) the first/default section,
+  // so simple recipes can just start typing steps with no category set up.
+  function addMethodStep(recipeId, sectionId, text) {
     var r = recipeById(recipeId);
     text = (text || '').trim();
     if (!r || !text) return;
-    var steps = stepsOf(r);
-    steps.push(text);
-    editRecipe(recipeId, { instructions: stepsToText(steps) });
+    var sections = sectionsOf(r);
+    var s = sectionId == null
+      ? (sections.length ? sections[0] : (sections.push({ id: uuid(), name: null, steps: [] }), sections[0]))
+      : sectionByIdIn(sections, sectionId);
+    if (!s) return;
+    s.steps.push(text);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) });
   }
 
-  function editStep(recipeId, index, text) {
+  function editMethodStep(recipeId, sectionId, index, text) {
     var r = recipeById(recipeId);
     if (!r) return;
     text = (text || '').trim();
     if (!text) return;
-    var steps = stepsOf(r);
-    if (index < 0 || index >= steps.length || steps[index] === text) return;
-    steps[index] = text;
-    editRecipe(recipeId, { instructions: stepsToText(steps) }, 'Step updated');
+    var sections = sectionsOf(r);
+    var s = sectionByIdIn(sections, sectionId);
+    if (!s || index < 0 || index >= s.steps.length || s.steps[index] === text) return;
+    s.steps[index] = text;
+    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Step updated');
   }
 
-  function removeStep(recipeId, index) {
+  function removeMethodStep(recipeId, sectionId, index) {
     var r = recipeById(recipeId);
     if (!r) return;
-    var steps = stepsOf(r);
-    if (index < 0 || index >= steps.length) return;
-    steps.splice(index, 1);
-    editRecipe(recipeId, { instructions: stepsToText(steps) }, 'Removed step');
+    var sections = sectionsOf(r);
+    var s = sectionByIdIn(sections, sectionId);
+    if (!s || index < 0 || index >= s.steps.length) return;
+    s.steps.splice(index, 1);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Removed step');
   }
 
-  function moveStep(recipeId, index, dir) {
+  function moveMethodStep(recipeId, sectionId, fromIdx, toIdx) {
     var r = recipeById(recipeId);
     if (!r) return;
-    var steps = stepsOf(r);
-    var j = index + dir;
-    if (j < 0 || j >= steps.length) return;
-    var tmp = steps[index];
-    steps[index] = steps[j];
-    steps[j] = tmp;
-    editRecipe(recipeId, { instructions: stepsToText(steps) });
+    var sections = sectionsOf(r);
+    var s = sectionByIdIn(sections, sectionId);
+    if (!s) return;
+    if (fromIdx < 0 || fromIdx >= s.steps.length || toIdx < 0 || toIdx >= s.steps.length || fromIdx === toIdx) return;
+    var moved = s.steps.splice(fromIdx, 1)[0];
+    s.steps.splice(toIdx, 0, moved);
+    editRecipe(recipeId, { instructions: sectionsToText(sections) });
+  }
+
+  // Pure drag math: given each row's ORIGINAL top/height and the live center
+  // of the row being dragged, how many rows now sit above it? That count is
+  // its target index. Kept separate from the DOM code so it's unit-testable.
+  function computeDropIndex(tops, heights, startIndex, draggedCenter) {
+    var count = 0;
+    for (var i = 0; i < tops.length; i++) {
+      if (i === startIndex) continue;
+      var center = tops[i] + heights[i] / 2;
+      if (center < draggedCenter) count++;
+    }
+    return count;
   }
 
   // -------------------------------------------------------------- toast
@@ -1329,33 +1455,97 @@
       }).join('') : '<div class="empty">No ingredients yet.</div>';
     }
 
-    var stepsHost = $('#rd-steps');
-    var editingLive = active && active.id === 'step-edit-input';
-    if (stepsHost && !editingLive) {
-      var steps = stepsOf(r);
-      stepsHost.innerHTML = steps.length ? steps.map(function (s, i) {
-        var body = (editingStepIdx === i)
-          ? '<input class="step-edit-input" id="step-edit-input" type="text" value="' + esc(s) + '">'
-          : '<span class="step-text" data-act="edit-step-inline" data-idx="' + i + '">' + esc(s) + '</span>';
-        return '<div class="step-line">' +
-          '<span class="step-num">' + (i + 1) + '.</span>' + body +
-          '<button class="step-move" data-act="step-up" data-idx="' + i + '"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-          '<button class="step-move" data-act="step-down" data-idx="' + i + '"' + (i === steps.length - 1 ? ' disabled' : '') + '>▼</button>' +
-          '<button class="kebab" data-act="toggle-step-menu" data-idx="' + i + '">⋮</button>' +
-          '<div class="menu"' + (openStepMenuIdx === i ? '' : ' hidden') + '>' +
-          '<button data-act="edit-step" data-idx="' + i + '">Edit</button>' +
-          '<button class="danger" data-act="delete-step" data-idx="' + i + '">Delete</button>' +
-          '</div></div>';
-      }).join('') : '<div class="empty">No steps yet.</div>';
-      var editInput = $('#step-edit-input');
-      if (editInput) { editInput.focus(); editInput.select(); }
-    }
+    renderMethodArea(r);
 
     if (justCreatedRecipeId === r.id && nameEl) {
       justCreatedRecipeId = null;
       nameEl.focus();
       nameEl.select();
     }
+  }
+
+  function renderMethodArea(r) {
+    var host = $('#rd-method');
+    if (!host) return;
+    var active = document.activeElement;
+    // Never blow away an input the user is mid-typing into (add-step / add
+    // section / inline rename / inline step edit) when an unrelated event
+    // (e.g. a background sync) triggers a re-render.
+    var isDraftInput = active && active.tagName === 'INPUT' && (
+      active.hasAttribute('data-add-step-for') ||
+      active.id === 'rd-add-section-name' ||
+      active.id === 'step-edit-input' ||
+      active.id === 'section-name-edit-input'
+    );
+    if (isDraftInput) return;
+
+    var sections = sectionsOf(r);
+    var html = sections.map(function (s) {
+      var showHeader = sectionNeedsHeader(s, sections);
+      var head = '';
+      if (showHeader) {
+        var nameBody = (renamingSectionId === s.id)
+          ? '<input class="section-name-edit-input" id="section-name-edit-input" type="text" value="' + esc(s.name || '') + '" placeholder="Section name">'
+          : '<span class="section-name' + (s.name ? '' : ' ph') + '" data-act="rename-section" data-section="' + s.id + '">' +
+            esc(s.name || 'Untitled section — tap to name') + '</span>';
+        head = '<div class="section-head">' +
+          '<span class="drag-handle" data-drag-handle>⠿</span>' + nameBody +
+          '<button class="kebab" data-act="toggle-section-menu" data-section="' + s.id + '">⋮</button>' +
+          '<div class="menu"' + (openSectionMenuId === s.id ? '' : ' hidden') + '>' +
+          '<button data-act="rename-section" data-section="' + s.id + '">Rename</button>' +
+          '<button class="danger" data-act="delete-section" data-section="' + s.id + '">Delete</button>' +
+          '</div></div>';
+      }
+      var stepsHtml = s.steps.map(function (stepText, i) { return methodStepRow(s.id, i, stepText); }).join('');
+      return '<div class="method-section" data-drag-row data-section-id="' + s.id + '">' + head +
+        '<div class="step-list" data-steps-for="' + s.id + '">' + stepsHtml + '</div>' +
+        '<div class="step-addline">' +
+        '<input type="text" placeholder="Add a step…" data-add-step-for="' + s.id + '" enterkeyhint="done">' +
+        '<button data-act="add-step" data-section="' + s.id + '">Add</button>' +
+        '</div></div>';
+    }).join('');
+
+    if (!sections.length) {
+      html = '<div class="method-section" data-drag-row data-section-id="">' +
+        '<div class="step-list" data-steps-for=""></div>' +
+        '<div class="step-addline">' +
+        '<input type="text" placeholder="Add a step…" data-add-step-for="" enterkeyhint="done">' +
+        '<button data-act="add-step" data-section="">Add</button>' +
+        '</div></div>';
+    }
+
+    html += '<div class="add-section-bar">' +
+      '<input type="text" id="rd-add-section-name" placeholder="Section name — e.g. Marination, Gravy" enterkeyhint="done">' +
+      '<button id="rd-add-section-go" data-act="add-section">+ Add category</button>' +
+      '</div>';
+
+    host.innerHTML = html;
+
+    if (lastFocusAddStep !== undefined && lastFocusAddStep !== null) {
+      var toFocus = host.querySelector('[data-add-step-for="' + lastFocusAddStep + '"]');
+      if (toFocus) toFocus.focus();
+      lastFocusAddStep = null;
+    }
+    var editInput = $('#step-edit-input');
+    if (editInput) { editInput.focus(); editInput.select(); }
+    var renameInput = $('#section-name-edit-input');
+    if (renameInput) { renameInput.focus(); renameInput.select(); }
+  }
+
+  function methodStepRow(sectionId, idx, text) {
+    var editing = editingStep && editingStep.sectionId === sectionId && editingStep.idx === idx;
+    var body = editing
+      ? '<input class="step-edit-input" id="step-edit-input" type="text" value="' + esc(text) + '">'
+      : '<span class="step-text" data-act="edit-step" data-section="' + sectionId + '" data-idx="' + idx + '">' + esc(text) + '</span>';
+    var menuOpen = openStepMenu && openStepMenu.sectionId === sectionId && openStepMenu.idx === idx;
+    return '<div class="step-row" data-drag-row data-section="' + sectionId + '" data-idx="' + idx + '">' +
+      '<span class="drag-handle" data-drag-handle>⠿</span>' +
+      '<span class="step-num">' + (idx + 1) + '.</span>' + body +
+      '<button class="kebab" data-act="toggle-step-menu" data-section="' + sectionId + '" data-idx="' + idx + '">⋮</button>' +
+      '<div class="menu"' + (menuOpen ? '' : ' hidden') + '>' +
+      '<button data-act="edit-step" data-section="' + sectionId + '" data-idx="' + idx + '">Edit</button>' +
+      '<button class="danger" data-act="delete-step" data-section="' + sectionId + '" data-idx="' + idx + '">Delete</button>' +
+      '</div></div>';
   }
 
   function renderRecipeCook(r) {
@@ -1385,10 +1575,17 @@
 
     var stepsHost = $('#rcook-steps');
     if (stepsHost) {
-      var steps = stepsOf(r);
-      stepsHost.innerHTML = steps.length
-        ? steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('')
-        : '<div class="empty">No method yet.</div>';
+      var sections = sectionsOf(r).filter(function (s) { return s.steps.length; });
+      if (!sections.length) {
+        stepsHost.innerHTML = '<div class="empty">No method yet.</div>';
+      } else {
+        stepsHost.innerHTML = sections.map(function (s) {
+          var heading = sectionNeedsHeader(s, sections)
+            ? '<div class="rcook-section-name">' + esc(s.name || 'General') + '</div>' : '';
+          return heading + '<ol class="rcook-step-list">' +
+            s.steps.map(function (step) { return '<li>' + esc(step) + '</li>'; }).join('') + '</ol>';
+        }).join('');
+      }
     }
   }
 
@@ -1463,8 +1660,10 @@
     if (!recipeById(id)) return;
     openRecipeId = id;
     openRecipeMode = 'edit';
-    openStepMenuIdx = null;
-    editingStepIdx = null;
+    openSectionMenuId = null;
+    openStepMenu = null;
+    renamingSectionId = null;
+    editingStep = null;
     renderRecipeViews();
   }
   function openRecipeCook(id) {
@@ -1473,11 +1672,18 @@
     openRecipeMode = 'cook';
     renderRecipeViews();
   }
+  function saveAndCloseRecipe() {
+    var active = document.activeElement;
+    if (active && $('#recipe-edit') && $('#recipe-edit').contains(active)) active.blur();
+    closeRecipeViews();
+  }
   function closeRecipeViews() {
     openRecipeId = null;
     openRecipeMode = null;
-    openStepMenuIdx = null;
-    editingStepIdx = null;
+    openSectionMenuId = null;
+    openStepMenu = null;
+    renamingSectionId = null;
+    editingStep = null;
     var e = $('#recipe-edit'), c = $('#recipe-cook');
     if (e) e.hidden = true;
     if (c) c.hidden = true;
@@ -1534,8 +1740,11 @@
       if (openMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-menu"]')) {
         openMenuId = null; renderCook();
       }
-      if (openStepMenuIdx != null && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-step-menu"]')) {
-        openStepMenuIdx = null; renderRecipeViews();
+      if (openStepMenu && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-step-menu"]')) {
+        openStepMenu = null; renderRecipeViews();
+      }
+      if (openSectionMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-section-menu"]')) {
+        openSectionMenuId = null; renderRecipeViews();
       }
     });
 
@@ -1550,7 +1759,8 @@
     }
 
     // recipe edit view
-    var back = $('#rd-back'); if (back) back.addEventListener('click', closeRecipeViews);
+    var back = $('#rd-back'); if (back) back.addEventListener('click', saveAndCloseRecipe);
+    var save = $('#rd-save'); if (save) save.addEventListener('click', saveAndCloseRecipe);
     var del = $('#rd-delete'); if (del) del.addEventListener('click', function () {
       if (openRecipeId) deleteRecipe(openRecipeId);
     });
@@ -1583,37 +1793,114 @@
       if (qty) editRecipeItem(qty.getAttribute('data-lineqty'), { display_qty: qty.value.trim() || null });
     });
 
-    // method steps: add-line + inline edit commit
-    var rdAddStep = $('#rd-add-step'), rdAddStepGo = $('#rd-add-step-go');
-    var doAddStep = function () {
-      if (!openRecipeId || !rdAddStep.value.trim()) return;
-      addStep(openRecipeId, rdAddStep.value);
-      rdAddStep.value = '';
-      rdAddStep.focus();
-    };
-    if (rdAddStepGo) rdAddStepGo.addEventListener('click', doAddStep);
-    if (rdAddStep) rdAddStep.addEventListener('keydown', function (e) { if (e.key === 'Enter') doAddStep(); });
-
-    var stepsHost = $('#rd-steps');
-    if (stepsHost) {
-      var commitStepEdit = function () {
-        var input = $('#step-edit-input');
-        if (!input || editingStepIdx == null) return;
-        var idx = editingStepIdx;
-        editingStepIdx = null;
-        editStep(openRecipeId, idx, input.value);
-        renderRecipeViews();
-      };
-      stepsHost.addEventListener('focusout', function (e) {
-        if (e.target && e.target.id === 'step-edit-input') commitStepEdit();
+    // method area: Enter-to-submit on add-step / add-section inputs, and
+    // commit-on-blur for the inline step/section rename inputs. Everything
+    // here is event-delegated on the stable #rd-method container, since its
+    // contents (sections, steps, the add bars) are fully rebuilt on every
+    // render — see renderMethodArea().
+    var methodHost = $('#rd-method');
+    if (methodHost) {
+      methodHost.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var t = e.target;
+        if (t.id === 'step-edit-input' || t.id === 'section-name-edit-input') { t.blur(); return; }
+        if (t.hasAttribute('data-add-step-for') || t.id === 'rd-add-section-name') {
+          var btn = t.parentElement.querySelector('[data-act]');
+          t.blur(); // move focus off the draft input first so the re-render isn't suppressed
+          if (btn) btn.click();
+        }
       });
-      stepsHost.addEventListener('keydown', function (e) {
-        if (e.target && e.target.id === 'step-edit-input' && e.key === 'Enter') e.target.blur();
+      methodHost.addEventListener('focusout', function (e) {
+        var t = e.target;
+        if (t.id === 'step-edit-input' && editingStep) {
+          var key = editingStep; editingStep = null;
+          editMethodStep(openRecipeId, key.sectionId, key.idx, t.value);
+        } else if (t.id === 'section-name-edit-input' && renamingSectionId) {
+          var sid = renamingSectionId; renamingSectionId = null;
+          renameMethodSection(openRecipeId, sid, t.value);
+        }
+      });
+      methodHost.addEventListener('pointerdown', function (e) {
+        var handle = e.target.closest('[data-drag-handle]');
+        if (!handle) return;
+        var stepRow = handle.closest('.step-row');
+        if (stepRow) {
+          var listEl = stepRow.parentElement;
+          beginRowDrag(e, stepRow, listEl, function (from, to) {
+            moveMethodStep(openRecipeId, stepRow.getAttribute('data-section'), from, to);
+          });
+          return;
+        }
+        var sectionRow = handle.closest('.method-section');
+        if (sectionRow && sectionRow.parentElement === methodHost) {
+          beginRowDrag(e, sectionRow, methodHost, function (from, to) {
+            moveMethodSection(openRecipeId, from, to);
+          });
+        }
       });
     }
 
     // recipe cook (view-only) mode
     var cookBack = $('#rcook-back'); if (cookBack) cookBack.addEventListener('click', closeRecipeViews);
+  }
+
+  // Touch- and mouse-friendly row reordering via Pointer Events (no library,
+  // works on iOS Safari where the native HTML5 drag-and-drop API does not).
+  // `row` must be a direct child of `scopeEl` and every reorderable sibling
+  // must carry [data-drag-row]. onCommit(fromIndex, toIndex) fires once, on
+  // release, only if the row actually moved.
+  function beginRowDrag(e, row, scopeEl, onCommit) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    var rows = Array.prototype.slice.call(scopeEl.children).filter(function (el) {
+      return el.nodeType === 1 && el.hasAttribute('data-drag-row');
+    });
+    var startIndex = rows.indexOf(row);
+    if (startIndex === -1) return;
+    e.preventDefault();
+
+    var startTops = rows.map(function (r) { return r.offsetTop; });
+    var startHeights = rows.map(function (r) { return r.offsetHeight; });
+    var rowHeight = startHeights[startIndex];
+    var startClientY = e.clientY;
+    var baseline = Math.min.apply(null, startTops);
+    var others = [];
+    rows.forEach(function (r, i) { if (i !== startIndex) others.push({ el: r, top: startTops[i], height: startHeights[i] }); });
+    var currentIndex = startIndex;
+
+    row.classList.add('dragging');
+    row.style.transition = 'none';
+    try { handleCapture(e); } catch (err) { /* pointer capture unsupported — drag still works via document listeners */ }
+    function handleCapture(ev) { if (ev.target.setPointerCapture) ev.target.setPointerCapture(ev.pointerId); }
+
+    function layout(dy) {
+      row.style.transform = 'translateY(' + dy + 'px)';
+      var draggedCenter = startTops[startIndex] + rowHeight / 2 + dy;
+      var newIndex = computeDropIndex(startTops, startHeights, startIndex, draggedCenter);
+      var cursor = baseline, placed = 0;
+      others.forEach(function (o) {
+        if (placed === newIndex) cursor += rowHeight;
+        o.el.style.transform = 'translateY(' + (cursor - o.top) + 'px)';
+        cursor += o.height;
+        placed++;
+      });
+      currentIndex = newIndex;
+    }
+    function cleanup() {
+      row.classList.remove('dragging');
+      row.style.transform = ''; row.style.transition = '';
+      others.forEach(function (o) { o.el.style.transform = ''; });
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+    }
+    function onMove(ev) { layout(ev.clientY - startClientY); }
+    function onUp() {
+      cleanup();
+      if (currentIndex !== startIndex) onCommit(startIndex, currentIndex);
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
   }
 
   function onTap(e) {
@@ -1644,21 +1931,51 @@
     }
     else if (act === 'edit-recipe') { openMenuId = null; openRecipeEdit(id); }
     else if (act === 'delete-recipe') { openMenuId = null; deleteRecipe(id); }
-    else if (act === 'edit-step-inline' || act === 'edit-step') {
-      openStepMenuIdx = null;
-      editingStepIdx = parseInt(el.getAttribute('data-idx'), 10);
+    else if (act === 'edit-step') {
+      openStepMenu = null;
+      editingStep = { sectionId: el.getAttribute('data-section'), idx: parseInt(el.getAttribute('data-idx'), 10) };
       renderRecipeViews();
     }
     else if (act === 'delete-step') {
-      openStepMenuIdx = null;
-      if (openRecipeId) removeStep(openRecipeId, parseInt(el.getAttribute('data-idx'), 10));
+      openStepMenu = null;
+      if (openRecipeId) removeMethodStep(openRecipeId, el.getAttribute('data-section'), parseInt(el.getAttribute('data-idx'), 10));
     }
-    else if (act === 'step-up') { if (openRecipeId) moveStep(openRecipeId, parseInt(el.getAttribute('data-idx'), 10), -1); }
-    else if (act === 'step-down') { if (openRecipeId) moveStep(openRecipeId, parseInt(el.getAttribute('data-idx'), 10), 1); }
     else if (act === 'toggle-step-menu') {
-      var idx = parseInt(el.getAttribute('data-idx'), 10);
-      openStepMenuIdx = (openStepMenuIdx === idx) ? null : idx;
+      var stepKey = { sectionId: el.getAttribute('data-section'), idx: parseInt(el.getAttribute('data-idx'), 10) };
+      openStepMenu = (openStepMenu && openStepMenu.sectionId === stepKey.sectionId && openStepMenu.idx === stepKey.idx)
+        ? null : stepKey;
       renderRecipeViews();
+    }
+    else if (act === 'rename-section') {
+      openSectionMenuId = null;
+      renamingSectionId = el.getAttribute('data-section');
+      renderRecipeViews();
+    }
+    else if (act === 'delete-section') {
+      openSectionMenuId = null;
+      if (openRecipeId) removeMethodSection(openRecipeId, el.getAttribute('data-section'));
+    }
+    else if (act === 'toggle-section-menu') {
+      var secId = el.getAttribute('data-section');
+      openSectionMenuId = (openSectionMenuId === secId) ? null : secId;
+      renderRecipeViews();
+    }
+    else if (act === 'add-step') {
+      var sectionForAdd = el.getAttribute('data-section') || null;
+      var stepInput = $('#rd-method').querySelector('[data-add-step-for="' + (sectionForAdd || '') + '"]');
+      if (stepInput && stepInput.value.trim() && openRecipeId) {
+        lastFocusAddStep = sectionForAdd;
+        stepInput.blur(); // deterministically clear focus before the rebuild, regardless of click-vs-focus quirks
+        addMethodStep(openRecipeId, sectionForAdd, stepInput.value);
+      }
+    }
+    else if (act === 'add-section') {
+      var sectionNameInput = $('#rd-add-section-name');
+      if (sectionNameInput && sectionNameInput.value.trim() && openRecipeId) {
+        sectionNameInput.blur();
+        var createdSection = addMethodSection(openRecipeId, sectionNameInput.value);
+        if (createdSection) lastFocusAddStep = createdSection.id;
+      }
     }
   }
 
@@ -1772,12 +2089,17 @@
     addRecipeItem: addRecipeItem,
     editRecipeItem: editRecipeItem,
     removeRecipeItem: removeRecipeItem,
-    stepsOf: stepsOf,
-    stepsToText: stepsToText,
-    addStep: addStep,
-    editStep: editStep,
-    removeStep: removeStep,
-    moveStep: moveStep,
+    sectionsOf: sectionsOf,
+    sectionsToText: sectionsToText,
+    addMethodSection: addMethodSection,
+    renameMethodSection: renameMethodSection,
+    removeMethodSection: removeMethodSection,
+    moveMethodSection: moveMethodSection,
+    addMethodStep: addMethodStep,
+    editMethodStep: editMethodStep,
+    removeMethodStep: removeMethodStep,
+    moveMethodStep: moveMethodStep,
+    computeDropIndex: computeDropIndex,
     openRecipeEdit: openRecipeEdit,
     openRecipeCook: openRecipeCook,
     closeRecipeViews: closeRecipeViews,
