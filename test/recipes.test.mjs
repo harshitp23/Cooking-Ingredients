@@ -11,9 +11,9 @@ test('recipeStatus: low still counts as makeable; out does not; staples & equipm
     item('i1', 'Onion', { state: 'have' }),
     item('i2', 'Carrot', { state: 'low' }),
     item('i3', 'Salt', { state: 'out', is_staple: true }),   // staple -> ignored
-    item('i4', 'Pot', { state: 'out', kind: 'equipment' }),  // equipment -> ignored
+    item('i4', 'Pot', { state: 'out', kind: 'equipment' }),  // equipment -> ignored (not an ingredient)
   ];
-  const lines = items.map((it, n) => line('l' + n, 'r1', it.id, { sort_order: n }));
+  const lines = items.map((it, n) => line('l' + n, 'r1', it.name, { sort_order: n }));
   const r = recipe('r1', 'Stew');
 
   let st = K.recipeStatus(r, lines, items);
@@ -27,54 +27,62 @@ test('recipeStatus: low still counts as makeable; out does not; staples & equipm
   assert.deepEqual(st.missing, ['Onion']);
 });
 
-test('adding a recipe ingredient not in inventory creates an "out" item on the shopping list', async (t) => {
+test('an ingredient with no matching inventory item is assumed present (not tracked, doesn\'t block "makeable")', async (t) => {
+  const { K, window } = await loadApp();
+  t.after(() => window.close());
+
+  const r = recipe('r1', 'Toast');
+  const lines = [line('l1', 'r1', 'Sourdough')]; // no matching inventory item at all
+  const st = K.recipeStatus(r, lines, []);
+  assert.equal(st.makeable, true);
+  assert.deepEqual(st.missing, []);
+});
+
+test('adding a recipe ingredient never touches inventory — it is plain text on the line', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());
 
   K._reset({ items: [], recipes: [recipe('r1', 'Toast')] });
   const res = K.addRecipeItem('r1', 'Sourdough', '2 slices');
 
-  assert.ok(res && res.createdItem, 'reports it created a new item');
-  const it = K.state.items.find((x) => x.name === 'Sourdough');
-  assert.ok(it, 'item added to inventory');
-  assert.equal(it.kind, 'ingredient');
-  assert.equal(it.state, 'out');
-  assert.ok(K.shopping().items.some((x) => x.name === 'Sourdough'), 'shows on shopping list');
-
-  assert.equal(
-    K.state.recipeItems.filter((l) => l.recipe_id === 'r1' && l.item_id === it.id).length,
-    1,
-    'recipe line links the new item',
-  );
+  assert.ok(res && res.line, 'returns the created line');
+  assert.equal(K.state.items.length, 0, 'no inventory row created');
+  assert.equal(K.state.recipeItems.length, 1);
+  assert.equal(K.state.recipeItems[0].name, 'Sourdough');
+  assert.equal(K.state.recipeItems[0].item_id, null, 'no link to any item');
   assert.equal(K.state.recipeItems[0].display_qty, '2 slices');
-  assert.ok(K.state.queue.some((o) => o.table === 'kitchen_items' && o.kind === 'insert'));
+
+  // only the recipe_items insert is queued — never a kitchen_items write
   assert.ok(K.state.queue.some((o) => o.table === 'kitchen_recipe_items' && o.kind === 'insert'));
-  // the item insert must be queued before the line insert (FK order)
-  const iIdx = K.state.queue.findIndex((o) => o.table === 'kitchen_items' && o.kind === 'insert');
-  const lIdx = K.state.queue.findIndex((o) => o.table === 'kitchen_recipe_items' && o.kind === 'insert');
-  assert.ok(iIdx < lIdx, 'item insert precedes recipe-line insert');
+  assert.ok(!K.state.queue.some((o) => o.table === 'kitchen_items'), 'kitchen_items untouched');
 });
 
-test('an existing inventory ingredient is reused case-insensitively, not duplicated', async (t) => {
+test('a recipe ingredient whose name matches inventory picks up its live state', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());
 
-  K._reset({ items: [item('i1', 'Milk', { state: 'have' })], recipes: [recipe('r1', 'Latte')] });
-  const res = K.addRecipeItem('r1', 'milk', '200 ml');
+  K._reset({ items: [item('i1', 'Milk', { state: 'low' })], recipes: [recipe('r1', 'Latte')] });
+  K.addRecipeItem('r1', 'milk', '200 ml'); // case-insensitive match
 
-  assert.equal(res.createdItem, false);
-  assert.equal(res.item.id, 'i1');
-  assert.equal(K.state.items.length, 1, 'no duplicate inventory row');
-  assert.equal(K.state.items[0].state, 'have', 'existing item state untouched');
+  assert.equal(K.state.items.length, 1, 'still no duplicate/new inventory row');
+  const match = K.findInventoryMatch(K.state.items, K.state.recipeItems[0].name);
+  assert.ok(match, 'matched live by name');
+  assert.equal(match.id, 'i1');
+  assert.equal(match.state, 'low');
+
+  // and it reflects a LATER inventory change with no re-linking needed
+  K.state.items[0].state = 'out';
+  const st = K.recipeStatus(K.state.recipes[0], K.state.recipeItems, K.state.items);
+  assert.deepEqual(st.missing, ['Milk']);
 });
 
 test('adding the same ingredient twice to one recipe is a no-op the second time', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());
 
-  K._reset({ items: [item('i1', 'Milk')], recipes: [recipe('r1', 'Latte')] });
+  K._reset({ recipes: [recipe('r1', 'Latte')] });
   K.addRecipeItem('r1', 'Milk', '100ml');
-  const second = K.addRecipeItem('r1', 'milk', '999ml');
+  const second = K.addRecipeItem('r1', 'milk', '999ml'); // case-insensitive dup
   assert.equal(second, null);
   assert.equal(K.state.recipeItems.filter((l) => l.recipe_id === 'r1').length, 1);
 });
@@ -86,21 +94,26 @@ test('"can make now" filter shows only makeable recipes, sorted', async (t) => {
   K._reset({
     items: [item('i1', 'Egg', { state: 'have' }), item('i2', 'Flour', { state: 'out' })],
     recipes: [recipe('r1', 'Boiled egg'), recipe('r2', 'Bread')],
-    recipeItems: [line('l1', 'r1', 'i1'), line('l2', 'r2', 'i2')],
+    recipeItems: [line('l1', 'r1', 'Egg'), line('l2', 'r2', 'Flour')],
   });
 
   assert.deepEqual(K.cookList('all').map((r) => r.name), ['Boiled egg', 'Bread']);
   assert.deepEqual(K.cookList('makeable').map((r) => r.name), ['Boiled egg']);
 });
 
-test('deleting an ingredient used by a recipe removes the line and both can be undone', async (t) => {
+test('deleting an inventory item cleans up any legacy-linked recipe lines, and can be undone', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());
 
+  // item_id links are legacy (pre-name-matching) but deleteItem must still
+  // cascade them safely if they exist, same as before.
   K._reset({
     items: [item('i1', 'Butter', { state: 'have' })],
     recipes: [recipe('r1', 'Cookies'), recipe('r2', 'Toast')],
-    recipeItems: [line('l1', 'r1', 'i1'), line('l2', 'r2', 'i1')],
+    recipeItems: [
+      line('l1', 'r1', 'Butter', { item_id: 'i1' }),
+      line('l2', 'r2', 'Butter', { item_id: 'i1' }),
+    ],
   });
 
   K.deleteItem('i1');

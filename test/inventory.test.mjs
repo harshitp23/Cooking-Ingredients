@@ -20,26 +20,6 @@ test('state cycles have -> low -> out -> have, in that order', async (t) => {
   assert.equal(K.state.items[0].state, 'have');
 });
 
-test('staples never appear in the shopping list, regardless of state', async (t) => {
-  const { K, window } = await loadApp();
-  t.after(() => window.close());
-
-  for (const st of ['have', 'low', 'out']) {
-    K._reset({ items: [item('s', 'Salt', { is_staple: true, state: st })] });
-    assert.equal(K.shopping().items.length, 0, `staple in state ${st} must not be listed`);
-  }
-});
-
-test('equipment never appears in the shopping list, regardless of state', async (t) => {
-  const { K, window } = await loadApp();
-  t.after(() => window.close());
-
-  for (const st of ['have', 'low', 'out']) {
-    K._reset({ items: [item('e', 'Blender', { kind: 'equipment', state: st })] });
-    assert.equal(K.shopping().items.length, 0, `equipment in state ${st} must not be listed`);
-  }
-});
-
 test('equipment toggles between own (have) and not-own (out)', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());

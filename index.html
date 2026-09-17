@@ -156,18 +156,6 @@
 
   .empty { color: var(--text-dim); text-align: center; padding: 32px 12px; }
 
-  /* ---- Shopping ---- */
-  .shop-item {
-    display: flex; align-items: center; gap: 12px; width: 100%;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 12px; text-align: left; margin-bottom: 6px;
-  }
-  .shop-item .box {
-    width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border);
-    flex: none;
-  }
-  .shop-item .lbl { flex: 1; min-width: 0; }
-
   .tag {
     font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 7px;
     border-radius: 6px; white-space: nowrap;
@@ -175,7 +163,7 @@
   .tag.out { background: var(--out-bg); color: var(--out); }
   .tag.low { background: var(--low-bg); color: var(--low); }
   .tag.have { background: var(--have-bg); color: var(--have); }
-  .tag.staple, .tag.oneoff { background: var(--surface-2); color: var(--text-dim); }
+  .tag.staple, .tag.untracked { background: var(--surface-2); color: var(--text-dim); }
 
   /* ---- Cook ---- */
   .cook-filter { display: flex; gap: 8px; margin: 2px 0 12px; }
@@ -304,10 +292,16 @@
   }
 
   /* ---- Cooking mode (read-only) ---- */
+  .rcook-banner {
+    margin: 0 0 12px; padding: 11px 14px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  }
+  .rcook-banner.bad { background: var(--out-bg); color: var(--out); }
+  .rcook-banner.warn { background: var(--low-bg); color: var(--low); }
   #rcook-lines .rcook-line {
-    display: flex; justify-content: space-between; gap: 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
     padding: 10px 4px; border-bottom: 1px solid var(--border); font-size: 15px;
   }
+  #rcook-lines .rcook-line-right { display: flex; align-items: center; gap: 8px; flex: none; }
   #rcook-lines .rcook-line .qty { color: var(--text-dim); }
   .rcook-section-name {
     font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
@@ -438,14 +432,6 @@
       <div id="equipment"></div>
     </section>
 
-    <section class="view" id="view-shopping" hidden>
-      <div class="addbar">
-        <input id="add-oneoff" type="text" enterkeyhint="done"
-               placeholder="One-off item (not stocked) — press enter">
-      </div>
-      <div id="shopping"></div>
-    </section>
-
     <section class="view" id="view-cook" hidden>
       <button id="add-recipe-btn" class="add-recipe-btn">+ Add recipe</button>
       <div class="cook-filter">
@@ -458,7 +444,6 @@
 
   <nav class="tabs">
     <button data-tab="inventory" class="active"><span class="ico">🧺</span>Inventory</button>
-    <button data-tab="shopping"><span class="ico">🛒</span>Shopping</button>
     <button data-tab="cook"><span class="ico">🍳</span>Cook</button>
   </nav>
 </div>
@@ -494,6 +479,7 @@
     <span class="pill" id="rcook-status"></span>
   </header>
   <div class="rd-body">
+    <div id="rcook-banner" class="rcook-banner" hidden></div>
     <h1 id="rcook-name"></h1>
 
     <h2 class="sec">Ingredients</h2>
@@ -553,7 +539,6 @@
 
   var LS = {
     items: 'kitchen.items.v1',
-    oneoffs: 'kitchen.oneoffs.v1',
     recipes: 'kitchen.recipes.v1',
     recipeItems: 'kitchen.recipeItems.v1',
     queue: 'kitchen.queue.v1',
@@ -562,7 +547,7 @@
   var COLS = {};
   COLS[T_ITEMS] = ['id', 'user_id', 'name', 'kind', 'state', 'category', 'is_staple', 'notes'];
   COLS[T_RECIPES] = ['id', 'user_id', 'name', 'notes', 'instructions', 'servings', 'category'];
-  COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'display_qty', 'sort_order'];
+  COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'name', 'display_qty', 'sort_order'];
 
   var STATE_CYCLE = ['have', 'low', 'out'];
   var DEFAULT_RECIPE_CATEGORIES = ['Starter', 'Main', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
@@ -570,7 +555,6 @@
   // ----------------------------------------------------------------- state
   var state = {
     items: [],
-    oneoffs: [],
     recipes: [],
     recipeItems: [],
     queue: [],
@@ -621,7 +605,6 @@
   function persist(which) {
     try {
       if (!which || which === 'items') localStorage.setItem(LS.items, JSON.stringify(state.items));
-      if (!which || which === 'oneoffs') localStorage.setItem(LS.oneoffs, JSON.stringify(state.oneoffs));
       if (!which || which === 'recipes') localStorage.setItem(LS.recipes, JSON.stringify(state.recipes));
       if (!which || which === 'recipeItems') localStorage.setItem(LS.recipeItems, JSON.stringify(state.recipeItems));
       if (!which || which === 'queue') localStorage.setItem(LS.queue, JSON.stringify(state.queue));
@@ -630,13 +613,12 @@
   }
   function loadFromCache() {
     state.items = readLS(LS.items, []) || [];
-    state.oneoffs = readLS(LS.oneoffs, []) || [];
     state.recipes = readLS(LS.recipes, []) || [];
     state.recipeItems = readLS(LS.recipeItems, []) || [];
     state.queue = readLS(LS.queue, []) || [];
     var ui = readLS(LS.ui, {}) || {};
     state.ui = {
-      tab: ui.tab || 'inventory',
+      tab: (ui.tab === 'cook') ? 'cook' : 'inventory', // 'shopping' (retired) falls back to inventory
       collapsed: ui.collapsed || {},
       collapsedRecipes: ui.collapsedRecipes || {},
       cookFilter: ui.cookFilter || 'all'
@@ -647,23 +629,6 @@
   function nextState(s) {
     var i = STATE_CYCLE.indexOf(s);
     return STATE_CYCLE[(i + 1) % STATE_CYCLE.length];
-  }
-
-  // Derived shopping list: low/out ingredients that aren't staples, 'out' first,
-  // then the localStorage-only one-off items. Equipment can never appear here.
-  function deriveShopping(items, oneoffs) {
-    var rank = { out: 0, low: 1 };
-    var fromInventory = (items || []).filter(function (it) {
-      return it.kind === 'ingredient' && !it.is_staple &&
-             (it.state === 'low' || it.state === 'out');
-    }).map(function (it) {
-      return { type: 'item', id: it.id, name: it.name, state: it.state, category: it.category || null };
-    }).sort(function (a, b) {
-      return (rank[a.state] - rank[b.state]) || a.name.localeCompare(b.name);
-    });
-    var manual = (oneoffs || []).filter(function (o) { return !o.done; })
-      .map(function (o) { return { type: 'oneoff', id: o.id, name: o.name }; });
-    return { items: fromInventory, oneoffs: manual };
   }
 
   function groupIngredients(items) {
@@ -687,17 +652,30 @@
     });
   }
 
-  // "What can I make": a recipe is makeable when none of its non-staple
-  // ingredient lines is 'out'. 'low' still counts as makeable (flagged).
-  // Equipment lines and staples are ignored.
+  // Recipe ingredients are free text (see addRecipeItem) — matching one to a
+  // live inventory state is a name lookup, not a stored link, so it stays
+  // correct even if the item is added to inventory after the recipe is
+  // written, renamed, etc.
+  function findInventoryMatch(items, name) {
+    if (!name) return null;
+    var lname = String(name).trim().toLowerCase();
+    for (var i = 0; i < (items || []).length; i++) {
+      if (items[i].kind === 'ingredient' && items[i].name.toLowerCase() === lname) return items[i];
+    }
+    return null;
+  }
+
+  // "What can I make": a recipe is makeable when none of its tracked,
+  // non-staple ingredients is 'out'. 'low' still counts as makeable
+  // (flagged). Ingredients with no matching inventory item are assumed
+  // present, same as staples — writing a recipe never requires stocking
+  // every ingredient in inventory first.
   function recipeStatus(recipe, recipeItems, items) {
-    var idx = {};
-    (items || []).forEach(function (it) { idx[it.id] = it; });
     var lines = (recipeItems || []).filter(function (ri) { return ri.recipe_id === recipe.id; });
     var missing = [], low = [];
     lines.forEach(function (ri) {
-      var it = idx[ri.item_id];
-      if (!it || it.kind !== 'ingredient' || it.is_staple) return;
+      var it = findInventoryMatch(items, ri.name);
+      if (!it || it.is_staple) return;
       if (it.state === 'out') missing.push(it.name);
       else if (it.state === 'low') low.push(it.name);
     });
@@ -989,12 +967,6 @@
     applyStateChange(id, next, it.name + (next === 'have' ? ' — own' : " — don't own"));
   }
 
-  function checkOff(id) {
-    var it = byId(id);
-    if (!it) return;
-    applyStateChange(id, 'have', 'Got ' + it.name);
-  }
-
   function editItem(id, patch, undoLabel) {
     var it = byId(id);
     if (!it) return;
@@ -1033,36 +1005,6 @@
       enqueue({ table: T_ITEMS, kind: 'insert', row: cloneRow(row) });
       lines.forEach(function (ri) { enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(ri) }); });
     });
-  }
-
-  // ----------------------------------------------------- actions: one-offs
-  function addOneoff(name) {
-    name = (name || '').trim();
-    if (!name) return null;
-    var o = { id: uuid(), name: name, done: false, added: Date.now() };
-    state.oneoffs.push(o);
-    persist('oneoffs'); renderShopping();
-    return o;
-  }
-  function checkOffOneoff(id) {
-    var o = findById(state.oneoffs, id);
-    if (!o) return;
-    o.done = true;
-    persist('oneoffs'); renderShopping();
-    var remove = setTimeout(function () {
-      state.oneoffs = state.oneoffs.filter(function (x) { return x.id !== id; });
-      persist('oneoffs');
-    }, 5000);
-    toast('Got ' + o.name, function () {
-      clearTimeout(remove);
-      o.done = false;
-      persist('oneoffs'); renderShopping();
-    });
-  }
-  function compactOneoffs() {
-    var before = state.oneoffs.length;
-    state.oneoffs = state.oneoffs.filter(function (o) { return !o.done; });
-    if (state.oneoffs.length !== before) persist('oneoffs');
   }
 
   // ----------------------------------------------------- actions: recipes
@@ -1118,31 +1060,27 @@
 
   // Add an ingredient line to a recipe. If the ingredient isn't in inventory
   // yet it's created as 'out' (so it lands on the shopping list).
+  // Recipe ingredients are just text — writing a recipe never creates or
+  // touches an inventory row. If the name happens to match something in
+  // inventory, recipeStatus()/rendering pick that up live by name (see
+  // findInventoryMatch); nothing is stored here beyond the name itself.
   function addRecipeItem(recipeId, itemName, displayQty) {
     itemName = (itemName || '').trim();
     if (!itemName || !recipeById(recipeId)) return null;
-    var existing = null, lname = itemName.toLowerCase();
-    for (var i = 0; i < state.items.length; i++) {
-      if (state.items[i].kind === 'ingredient' && state.items[i].name.toLowerCase() === lname) { existing = state.items[i]; break; }
-    }
-    var item = existing;
-    if (!item) {
-      item = { id: uuid(), user_id: uid(), name: itemName, kind: 'ingredient', state: 'out',
-               category: null, is_staple: false, notes: null, created_at: iso(), updated_at: iso() };
-      state.items.push(item);
-      enqueue({ table: T_ITEMS, kind: 'insert', row: cloneRow(item) });
-    }
-    var dup = state.recipeItems.some(function (ri) { return ri.recipe_id === recipeId && ri.item_id === item.id; });
-    if (dup) { persist(); renderAll(); return null; }
+    var lname = itemName.toLowerCase();
+    var dup = state.recipeItems.some(function (ri) {
+      return ri.recipe_id === recipeId && (ri.name || '').toLowerCase() === lname;
+    });
+    if (dup) return null;
     var maxSort = state.recipeItems.reduce(function (m, ri) {
       return ri.recipe_id === recipeId ? Math.max(m, ri.sort_order || 0) : m;
     }, 0);
-    var line = { id: uuid(), user_id: uid(), recipe_id: recipeId, item_id: item.id,
+    var line = { id: uuid(), user_id: uid(), recipe_id: recipeId, item_id: null, name: itemName,
                  display_qty: (displayQty || '').trim() || null, sort_order: maxSort + 1, created_at: iso() };
     state.recipeItems.push(line);
-    persist(); renderAll();
+    persist('recipeItems'); renderAll();
     enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(line) });
-    return { item: item, line: line, createdItem: !existing };
+    return { line: line };
   }
 
   function editRecipeItem(id, patch) {
@@ -1304,7 +1242,6 @@
   function renderAll() {
     try {
       renderInventory();
-      renderShopping();
       renderCook();
       renderRecipeViews();
       renderSync();
@@ -1319,7 +1256,7 @@
     if (tabsWrap) tabsWrap.querySelectorAll('button').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-tab') === state.ui.tab);
     });
-    [['inventory', '#view-inventory'], ['shopping', '#view-shopping'], ['cook', '#view-cook']]
+    [['inventory', '#view-inventory'], ['cook', '#view-cook']]
       .forEach(function (p) { var el = $(p[1]); if (el) el.hidden = state.ui.tab !== p[0]; });
   }
 
@@ -1359,27 +1296,6 @@
       '<button class="name" data-act="edit" data-id="' + it.id + '">' + esc(it.name) + '</button>' +
       '<button class="equip ' + (own ? 'own' : 'no') + '" data-act="equip" data-id="' + it.id + '">' +
       (own ? 'Own' : "Don't own") + '</button></div>';
-  }
-
-  function renderShopping() {
-    var host = $('#shopping');
-    if (!host) return;
-    var list = deriveShopping(state.items, state.oneoffs);
-    if (!list.items.length && !list.oneoffs.length) {
-      host.innerHTML = '<div class="empty">Nothing to buy. 🎉</div>';
-      return;
-    }
-    host.innerHTML =
-      list.items.map(function (r) {
-        return '<button class="shop-item" data-act="checkoff" data-id="' + r.id + '">' +
-          '<span class="box"></span><span class="lbl">' + esc(r.name) + '</span>' +
-          '<span class="tag ' + r.state + '">' + r.state + '</span></button>';
-      }).join('') +
-      list.oneoffs.map(function (r) {
-        return '<button class="shop-item" data-act="checkoff-oneoff" data-id="' + r.id + '">' +
-          '<span class="box"></span><span class="lbl">' + esc(r.name) + '</span>' +
-          '<span class="tag oneoff">one-off</span></button>';
-      }).join('');
   }
 
   function renderCook() {
@@ -1468,12 +1384,11 @@
     var linesHost = $('#rd-lines');
     if (linesHost) {
       linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var it = byId(ri.item_id);
-        var name = it ? it.name : '(deleted item)';
-        var tagCls = !it ? 'oneoff' : it.is_staple ? 'staple' : it.state;
-        var tagTxt = !it ? '—' : it.is_staple ? 'staple' : it.state;
+        var match = findInventoryMatch(state.items, ri.name);
+        var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
+        var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
         return '<div class="rd-line">' +
-          '<span class="rl-name">' + esc(name) + '</span>' +
+          '<span class="rl-name">' + esc(ri.name || '') + '</span>' +
           '<input class="rl-qty" data-lineqty="' + ri.id + '" value="' + esc(ri.display_qty || '') + '" placeholder="qty">' +
           '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
           '<button class="rl-del" data-act="remove-line" data-id="' + ri.id + '">×</button>' +
@@ -1587,15 +1502,34 @@
         : 'Need ' + st.missing.length;
     }
 
+    var banner = $('#rcook-banner');
+    if (banner) {
+      if (st.missing.length) {
+        banner.hidden = false;
+        banner.className = 'rcook-banner bad';
+        banner.textContent = "Out of: " + st.missing.join(', ');
+      } else if (st.low.length) {
+        banner.hidden = false;
+        banner.className = 'rcook-banner warn';
+        banner.textContent = 'Running low: ' + st.low.join(', ');
+      } else {
+        banner.hidden = true;
+      }
+    }
+
     var lines = state.recipeItems.filter(function (ri) { return ri.recipe_id === r.id; })
       .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0) || (a.created_at || '').localeCompare(b.created_at || ''); });
     var linesHost = $('#rcook-lines');
     if (linesHost) {
       linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var it = byId(ri.item_id);
-        var name = it ? it.name : '(deleted item)';
-        return '<div class="rcook-line"><span>' + esc(name) + '</span>' +
-          (ri.display_qty ? '<span class="qty">' + esc(ri.display_qty) + '</span>' : '') + '</div>';
+        var match = findInventoryMatch(state.items, ri.name);
+        var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
+        var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
+        return '<div class="rcook-line"><span>' + esc(ri.name || '') + '</span>' +
+          '<span class="rcook-line-right">' +
+          (ri.display_qty ? '<span class="qty">' + esc(ri.display_qty) + '</span>' : '') +
+          '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
+          '</span></div>';
       }).join('') : '<div class="empty">No ingredients yet.</div>';
     }
 
@@ -1797,7 +1731,6 @@
 
     onEnter($('#add-ingredient'), function (v) { addItem('ingredient', v); });
     onEnter($('#add-equipment'), function (v) { addItem('equipment', v); });
-    onEnter($('#add-oneoff'), function (v) { addOneoff(v); });
 
     var addRecipeBtn = $('#add-recipe-btn');
     if (addRecipeBtn) addRecipeBtn.addEventListener('click', function () {
@@ -2000,8 +1933,6 @@
     if (act === 'cycle') cycleState(id);
     else if (act === 'equip') toggleEquipment(id);
     else if (act === 'edit') openSheet(id);
-    else if (act === 'checkoff') checkOff(id);
-    else if (act === 'checkoff-oneoff') checkOffOneoff(id);
     else if (act === 'open-cook') openRecipeCook(id);
     else if (act === 'remove-line') removeRecipeItem(id);
     else if (act === 'toggle-group') {
@@ -2120,7 +2051,6 @@
 
   function boot() {
     loadFromCache();
-    compactOneoffs();
     bindEvents();
     renderAll();
     show('#app');
@@ -2159,8 +2089,8 @@
   window.Kitchen = {
     state: state,
     nextState: nextState,
-    deriveShopping: deriveShopping,
     groupIngredients: groupIngredients,
+    findInventoryMatch: findInventoryMatch,
     recipeStatus: recipeStatus,
     cookList: cookList,
     groupRecipeRows: groupRecipeRows,
@@ -2170,11 +2100,8 @@
     addItem: addItem,
     cycleState: cycleState,
     toggleEquipment: toggleEquipment,
-    checkOff: checkOff,
     editItem: editItem,
     deleteItem: deleteItem,
-    addOneoff: addOneoff,
-    checkOffOneoff: checkOffOneoff,
     addRecipe: addRecipe,
     editRecipe: editRecipe,
     deleteRecipe: deleteRecipe,
@@ -2200,14 +2127,12 @@
     reconcile: reconcile,
     persist: persist,
     loadFromCache: loadFromCache,
-    shopping: function () { return deriveShopping(state.items, state.oneoffs); },
     _setClient: function (c) { client = c; },
     _setSession: function (s) { state.session = s; },
     _reset: function (opts) {
       opts = opts || {};
       flushGen++;
       state.items = opts.items || [];
-      state.oneoffs = opts.oneoffs || [];
       state.recipes = opts.recipes || [];
       state.recipeItems = opts.recipeItems || [];
       state.queue = opts.queue || [];

@@ -25,11 +25,16 @@ export const recipe = (id, name, over = {}) => ({
   ...over,
 });
 
-export const line = (id, recipeId, itemId, over = {}) => ({
+// Recipe ingredient line. `name` is free text matched live against inventory
+// item names (see findInventoryMatch) — item_id is legacy/unused by new code,
+// only set via `over` when a test specifically wants to exercise that path
+// (e.g. deleteItem's cascade cleanup for old linked rows).
+export const line = (id, recipeId, name, over = {}) => ({
   id,
   user_id: 'u1',
   recipe_id: recipeId,
-  item_id: itemId,
+  item_id: null,
+  name,
   display_qty: null,
   sort_order: 1,
   created_at: '2026-01-01T00:00:00.000Z',

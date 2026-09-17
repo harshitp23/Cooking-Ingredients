@@ -57,7 +57,7 @@ test('"can make now" filter still applies within categories', async (t) => {
   K._reset({
     items: [item('i1', 'Egg', { state: 'have' }), item('i2', 'Flour', { state: 'out' })],
     recipes: [recipe('r1', 'Boiled egg', { category: 'Breakfast' }), recipe('r2', 'Bread', { category: 'Breakfast' })],
-    recipeItems: [line('l1', 'r1', 'i1'), line('l2', 'r2', 'i2')],
+    recipeItems: [line('l1', 'r1', 'Egg'), line('l2', 'r2', 'Flour')],
   });
 
   const grouped = K.groupRecipeRows(K.cookList('makeable'));

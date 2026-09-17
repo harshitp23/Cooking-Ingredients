@@ -24,7 +24,7 @@ test('undo restores exact prior state after a delete (item + its recipe lines)',
   K._reset({
     items: [item('a', 'Milk', { state: 'have' }), item('b', 'Eggs', { state: 'low' })],
     recipes: [recipe('r1', 'Pancakes')],
-    recipeItems: [line('l1', 'r1', 'a', { display_qty: '1 cup', sort_order: 2 })],
+    recipeItems: [line('l1', 'r1', 'Milk', { item_id: 'a', display_qty: '1 cup', sort_order: 2 })],
   });
   const beforeItems = byId(K.state.items);
   const beforeLines = byId(K.state.recipeItems);
@@ -59,7 +59,7 @@ test('undo restores a deleted recipe and its lines', async (t) => {
   K._reset({
     items: [item('a', 'Flour', { state: 'have' })],
     recipes: [recipe('r1', 'Bread')],
-    recipeItems: [line('l1', 'r1', 'a')],
+    recipeItems: [line('l1', 'r1', 'Flour')],
   });
   const beforeRecipes = byId(K.state.recipes);
   const beforeLines = byId(K.state.recipeItems);
