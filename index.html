@@ -665,6 +665,16 @@
     return null;
   }
 
+  // A recipe line's display name: normally its own `name`, but rows written
+  // before that column existed (or fetched before the migration backfilled
+  // it) only have the old item_id link — fall back to the linked item's name
+  // so those lines don't render blank / look deleted.
+  function recipeItemName(ri, items) {
+    if (ri.name) return ri.name;
+    var it = findById(items || [], ri.item_id);
+    return it ? it.name : '';
+  }
+
   // "What can I make": a recipe is makeable when none of its tracked,
   // non-staple ingredients is 'out'. 'low' still counts as makeable
   // (flagged). Ingredients with no matching inventory item are assumed
@@ -674,7 +684,7 @@
     var lines = (recipeItems || []).filter(function (ri) { return ri.recipe_id === recipe.id; });
     var missing = [], low = [];
     lines.forEach(function (ri) {
-      var it = findInventoryMatch(items, ri.name);
+      var it = findInventoryMatch(items, recipeItemName(ri, items));
       if (!it || it.is_staple) return;
       if (it.state === 'out') missing.push(it.name);
       else if (it.state === 'low') low.push(it.name);
@@ -1069,7 +1079,7 @@
     if (!itemName || !recipeById(recipeId)) return null;
     var lname = itemName.toLowerCase();
     var dup = state.recipeItems.some(function (ri) {
-      return ri.recipe_id === recipeId && (ri.name || '').toLowerCase() === lname;
+      return ri.recipe_id === recipeId && recipeItemName(ri, state.items).toLowerCase() === lname;
     });
     if (dup) return null;
     var maxSort = state.recipeItems.reduce(function (m, ri) {
@@ -1384,11 +1394,12 @@
     var linesHost = $('#rd-lines');
     if (linesHost) {
       linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var match = findInventoryMatch(state.items, ri.name);
+        var name = recipeItemName(ri, state.items);
+        var match = findInventoryMatch(state.items, name);
         var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
         var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
         return '<div class="rd-line">' +
-          '<span class="rl-name">' + esc(ri.name || '') + '</span>' +
+          '<span class="rl-name">' + esc(name) + '</span>' +
           '<input class="rl-qty" data-lineqty="' + ri.id + '" value="' + esc(ri.display_qty || '') + '" placeholder="qty">' +
           '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
           '<button class="rl-del" data-act="remove-line" data-id="' + ri.id + '">×</button>' +
@@ -1522,10 +1533,11 @@
     var linesHost = $('#rcook-lines');
     if (linesHost) {
       linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var match = findInventoryMatch(state.items, ri.name);
+        var name = recipeItemName(ri, state.items);
+        var match = findInventoryMatch(state.items, name);
         var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
         var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
-        return '<div class="rcook-line"><span>' + esc(ri.name || '') + '</span>' +
+        return '<div class="rcook-line"><span>' + esc(name) + '</span>' +
           '<span class="rcook-line-right">' +
           (ri.display_qty ? '<span class="qty">' + esc(ri.display_qty) + '</span>' : '') +
           '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
@@ -2091,6 +2103,7 @@
     nextState: nextState,
     groupIngredients: groupIngredients,
     findInventoryMatch: findInventoryMatch,
+    recipeItemName: recipeItemName,
     recipeStatus: recipeStatus,
     cookList: cookList,
     groupRecipeRows: groupRecipeRows,

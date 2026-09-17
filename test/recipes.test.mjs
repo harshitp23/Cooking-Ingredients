@@ -27,6 +27,24 @@ test('recipeStatus: low still counts as makeable; out does not; staples & equipm
   assert.deepEqual(st.missing, ['Onion']);
 });
 
+test('a legacy line with no name (only the old item_id link) still displays and matches by the linked item\'s name', async (t) => {
+  const { K, window } = await loadApp();
+  t.after(() => window.close());
+
+  // Simulates a row fetched before the name-column migration/backfill ran:
+  // item_id is set, name is absent entirely (not even null on the object).
+  const legacyLine = { id: 'l1', user_id: 'u1', recipe_id: 'r1', item_id: 'i1',
+    display_qty: '2', sort_order: 1, created_at: '2026-01-01T00:00:00.000Z' };
+  const items = [item('i1', 'Onion', { state: 'out' })];
+  const r = recipe('r1', 'Stew');
+
+  assert.equal(K.recipeItemName(legacyLine, items), 'Onion', 'falls back to the linked item name');
+
+  const st = K.recipeStatus(r, [legacyLine], items);
+  assert.equal(st.makeable, false);
+  assert.deepEqual(st.missing, ['Onion'], 'still correctly matched and flagged out');
+});
+
 test('an ingredient with no matching inventory item is assumed present (not tracked, doesn\'t block "makeable")', async (t) => {
   const { K, window } = await loadApp();
   t.after(() => window.close());
