@@ -9,25 +9,38 @@ and laptop; data syncs across devices through Supabase.
 
 **Inventory** — ingredients grouped by category (collapsible), plus an
 equipment list. One-tap state cycling (have → low → out), one-tap
-own/don't-own for equipment. Staples are dimmed. You add and manage
-inventory here yourself — nothing else writes to it.
+own/don't-own for equipment. Staples are dimmed. Each category has a "+"
+for adding straight into it (no re-typing the category every time), and a
+"+ Add category" bar lets you create an empty one ahead of stocking it. You
+add and manage inventory here yourself — nothing else writes to it.
+
+**Shopping** — a plain grocery list, organized into your own categories
+(Produce, Dairy, Spices, …). Add a category, then tap its "+" to add items
+straight into it; check items off as you shop (they sink to the bottom of
+their category) and "Clear checked" sweeps them out when you're done. It is
+deliberately unlinked from Inventory and Cook — adding a recipe ingredient
+or an inventory item never touches it, and vice versa.
 
 **Cook** — recipes with an ingredient list, sectioned method (e.g.
 "Marination" / "Gravy", swipeable in Cooking mode like a carousel), and
-categories (Breakfast/Lunch/Dinner/Sauces/etc, collapsible groups). Recipe
-ingredients are plain text — typing one never creates or changes an
-inventory row. If a recipe ingredient's name matches something in your
-inventory, its live have/low/out status shows on the line, in the recipe
-editor and in Cooking mode alike; "can make now" filters recipes whose
-tracked ingredients aren't `out` (`low` still counts, untracked ingredients
-are assumed present). Cooking mode also shows a banner at the top listing
-anything you're out of or running low on for that recipe.
+categories (Breakfast/Lunch/Dinner/Sauces/etc, collapsible groups). Each
+category has a "+" that starts a new recipe already filed under it, skipping
+the category field; a "+ Add category" bar creates an empty one ahead of
+time. Recipe ingredients are plain text — typing one never creates or
+changes an inventory row. If a recipe ingredient's name matches something in
+your inventory, its live have/low/out status shows on the line, in the
+recipe editor and in Cooking mode alike; "can make now" filters recipes
+whose tracked ingredients aren't `out` (`low` still counts, untracked
+ingredients are assumed present). Cooking mode also shows a banner at the
+top listing anything you're out of or running low on for that recipe.
 
 **Everywhere** — optimistic UI, undo toasts instead of confirm dialogs
 (deletes included), and offline-first: renders from a `localStorage` cache,
 reconciles with Supabase, and queues failed writes to flush in order when
 back online. The flush is idempotent — a partial flush that retries never
-double-applies.
+double-applies. The Shopping tables are their own migration; if it hasn't
+been run yet on a given Supabase project, the rest of the app still syncs
+normally and Shopping just stays local until it has.
 
 ## Files
 

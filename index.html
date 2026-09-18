@@ -60,7 +60,8 @@
     overscroll-behavior-y: none;
   }
   button, input, textarea, select { font: inherit; color: inherit; }
-  button { cursor: pointer; border: none; background: none; }
+  button { cursor: pointer; border: none; background: none; transition: opacity .1s; }
+  button:active { opacity: .78; }
   [hidden] { display: none !important; }
   .wrap { max-width: 680px; margin: 0 auto; }
 
@@ -70,7 +71,8 @@
     display: flex; flex-direction: column; justify-content: center;
     gap: 14px; padding: 24px; max-width: 380px; margin: 0 auto;
   }
-  #login h1 { font-size: 22px; margin: 0 0 4px; }
+  #login .logo { font-size: 42px; line-height: 1; margin-bottom: 2px; }
+  #login h1 { font-size: 24px; margin: 0 0 4px; }
   #login p { color: var(--text-dim); margin: 0 0 12px; }
   #login input {
     width: 100%; padding: 14px; border-radius: 12px;
@@ -115,21 +117,52 @@
   h2.sec { font-size: 13px; text-transform: uppercase; letter-spacing: .05em;
     color: var(--text-dim); margin: 18px 4px 8px; }
 
-  .group { margin-bottom: 10px; }
+  .group { margin-bottom: 14px; }
+  .group-head-row { display: flex; align-items: center; gap: 4px; }
   .group-head {
-    width: 100%; text-align: left; display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 0; text-align: left; display: flex; align-items: center; gap: 8px;
     padding: 10px 6px; font-weight: 600; color: var(--text-dim);
   }
   .group-head .chev { transition: transform .15s; font-size: 12px; }
   .group.collapsed .chev { transform: rotate(-90deg); }
   .group.collapsed .rows { display: none; }
   .group-count { margin-left: auto; font-weight: 400; font-size: 13px; }
+  .catdot { width: 8px; height: 8px; border-radius: 50%; background: var(--catclr, var(--accent)); flex: none; }
+
+  .quick-add-btn {
+    flex: none; width: 32px; height: 32px; border-radius: 10px;
+    background: var(--surface-2); color: var(--accent); font-size: 19px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .group-head-row .kebab { flex: none; padding: 8px 6px; }
+
+  .quick-add-row { display: flex; gap: 6px; margin: 2px 2px 8px; }
+  .quick-add-row .qa-name { flex: 1; min-width: 0; }
+  .quick-add-row .qa-qty { width: 74px; }
+  .quick-add-row input {
+    padding: 10px 11px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+  }
+  .quick-add-row .qa-go {
+    background: var(--accent); color: #fff; font-weight: 600; padding: 10px 14px;
+    border-radius: 10px; white-space: nowrap;
+  }
+
+  .add-category-bar { display: flex; gap: 6px; margin: 10px 0 4px; }
+  .add-category-bar .add-cat-input {
+    flex: 1; min-width: 0; padding: 11px 12px; border-radius: 10px;
+    border: 1px dashed var(--border); background: transparent;
+  }
+  .add-category-bar .add-cat-go {
+    padding: 11px 14px; border-radius: 10px; border: 1px dashed var(--accent);
+    color: var(--accent); font-weight: 700; white-space: nowrap;
+  }
 
   .rows { display: flex; flex-direction: column; gap: 6px; }
   .row {
     display: flex; align-items: center; gap: 10px;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; padding: 4px 6px 4px 4px; min-height: 52px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
   }
   .row .name {
     flex: 1; text-align: left; padding: 12px 8px; border-radius: 8px;
@@ -154,7 +187,35 @@
   .equip.own { background: var(--have-bg); color: var(--have); border-color: transparent; }
   .equip.no  { background: var(--surface-2); color: var(--text-dim); }
 
-  .empty { color: var(--text-dim); text-align: center; padding: 32px 12px; }
+  .empty { color: var(--text-dim); text-align: center; padding: 32px 12px; line-height: 1.6; }
+  .empty.small { padding: 10px 4px; font-size: 13px; text-align: left; }
+
+  /* ---- Shopping ---- */
+  .shop-toolbar { display: flex; justify-content: flex-end; margin: 0 2px 10px; min-height: 30px; }
+  #shop-clear-checked {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    background: var(--surface-2); padding: 7px 12px; border-radius: 999px;
+  }
+  .shop-row .check {
+    flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;
+    color: #fff; transition: background .15s, border-color .15s;
+  }
+  .shop-row.checked .check { background: var(--have); border-color: var(--have); }
+  .shop-row .shop-name { font-size: 15px; }
+  .shop-row.checked .shop-name { color: var(--text-dim); text-decoration: line-through; }
+  .shopcat-rename-input {
+    flex: 1; min-width: 0; font-weight: 600; font-size: 15px; padding: 7px 8px;
+    border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
+  }
+
+  /* ---- nav tab badge ---- */
+  .ico { position: relative; display: inline-block; }
+  .tab-badge {
+    position: absolute; top: -5px; right: -9px; min-width: 15px; height: 15px; padding: 0 3px;
+    border-radius: 999px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
 
   .tag {
     font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 7px;
@@ -182,6 +243,7 @@
     position: relative; display: flex; align-items: flex-start; gap: 4px; width: 100%;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; padding: 6px 6px 6px 0; margin-bottom: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
   }
   .recipe-card .rc-open {
     flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center;
@@ -353,7 +415,12 @@
     flex: 1; padding: 10px 4px 8px; font-size: 11px; font-weight: 600;
     color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 3px;
   }
+  nav.tabs button { position: relative; }
   nav.tabs button.active { color: var(--accent); }
+  nav.tabs button.active::before {
+    content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 3px; border-radius: 2px; background: var(--accent);
+  }
   nav.tabs .ico { font-size: 18px; line-height: 1; }
 
   /* ---- Edit sheet ---- */
@@ -386,7 +453,9 @@
     background: #2b2723; color: #fff; border-radius: 12px;
     padding: 12px 14px; display: flex; align-items: center; gap: 12px;
     box-shadow: 0 6px 24px rgba(0,0,0,.28); max-width: 560px; margin: 0 auto;
+    animation: toast-in .18s ease;
   }
+  @keyframes toast-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
   #toast .toast-msg { flex: 1; font-size: 14px; }
   #toast .toast-undo {
     color: #ffb59e; font-weight: 700; padding: 6px 4px; font-size: 14px; text-transform: uppercase;
@@ -401,6 +470,7 @@
 <body>
 
 <div id="login" hidden>
+  <div class="logo">🍲</div>
   <h1>Kitchen Inventory</h1>
   <p>Sign in with your account.</p>
   <input id="login-email" type="email" autocomplete="username" inputmode="email" placeholder="Email">
@@ -432,6 +502,13 @@
       <div id="equipment"></div>
     </section>
 
+    <section class="view" id="view-shopping" hidden>
+      <div class="shop-toolbar">
+        <button id="shop-clear-checked" data-act="shop-clear-checked" hidden>Clear checked</button>
+      </div>
+      <div id="shopping-categories"></div>
+    </section>
+
     <section class="view" id="view-cook" hidden>
       <button id="add-recipe-btn" class="add-recipe-btn">+ Add recipe</button>
       <div class="cook-filter">
@@ -444,6 +521,7 @@
 
   <nav class="tabs">
     <button data-tab="inventory" class="active"><span class="ico">🧺</span>Inventory</button>
+    <button data-tab="shopping"><span class="ico">🛒<span class="tab-badge" id="shop-badge" hidden></span></span>Shopping</button>
     <button data-tab="cook"><span class="ico">🍳</span>Cook</button>
   </nav>
 </div>
@@ -536,11 +614,15 @@
   var T_ITEMS = 'kitchen_items';
   var T_RECIPES = 'kitchen_recipes';
   var T_RECIPE_ITEMS = 'kitchen_recipe_items';
+  var T_SHOP_CATS = 'kitchen_shopping_categories';
+  var T_SHOP_ITEMS = 'kitchen_shopping_items';
 
   var LS = {
     items: 'kitchen.items.v1',
     recipes: 'kitchen.recipes.v1',
     recipeItems: 'kitchen.recipeItems.v1',
+    shoppingCategories: 'kitchen.shoppingCategories.v1',
+    shoppingItems: 'kitchen.shoppingItems.v1',
     queue: 'kitchen.queue.v1',
     ui: 'kitchen.ui.v1'
   };
@@ -548,17 +630,27 @@
   COLS[T_ITEMS] = ['id', 'user_id', 'name', 'kind', 'state', 'category', 'is_staple', 'notes'];
   COLS[T_RECIPES] = ['id', 'user_id', 'name', 'notes', 'instructions', 'servings', 'category'];
   COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'name', 'display_qty', 'sort_order'];
+  COLS[T_SHOP_CATS] = ['id', 'user_id', 'name', 'sort_order'];
+  COLS[T_SHOP_ITEMS] = ['id', 'user_id', 'category_id', 'name', 'qty', 'checked', 'sort_order'];
 
   var STATE_CYCLE = ['have', 'low', 'out'];
   var DEFAULT_RECIPE_CATEGORIES = ['Starter', 'Main', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
+  // Cheap deterministic "which hue is this category" hash — purely a visual
+  // scanning aid (a colored dot per group), never persisted or synced.
+  var CATEGORY_PALETTE = ['#e7552d', '#2e7d43', '#1f7a8c', '#8e44ad', '#c0392b', '#a9741a', '#2166a8', '#c2185b'];
 
   // ----------------------------------------------------------------- state
   var state = {
     items: [],
     recipes: [],
     recipeItems: [],
+    shoppingCategories: [],
+    shoppingItems: [],
     queue: [],
-    ui: { tab: 'inventory', collapsed: {}, collapsedRecipes: {}, cookFilter: 'all' },
+    ui: {
+      tab: 'inventory', collapsed: {}, collapsedRecipes: {}, collapsedShopping: {},
+      cookFilter: 'all', cookCategories: [], inventoryCategories: []
+    },
     session: null,
     online: (typeof navigator !== 'undefined' && 'onLine' in navigator) ? navigator.onLine : true,
     syncing: false
@@ -575,6 +667,11 @@
   var lastFocusAddStep = null;  // section id whose "add a step" input should regain focus post-render
   var cookSlideIndex = 0;       // which method-section slide Cooking mode's carousel is on
   var justCreatedRecipeId = null; // freshly-created recipe: auto-focus its name field once
+  var openInvQuickAdd = null;    // inventory category name whose inline add-row is open
+  var openCookQuickAdd = null;   // cook category name whose inline add-row is open
+  var openShopQuickAdd = null;   // shopping category id whose inline add-row is open
+  var openShopCatMenuId = null;  // shopping category kebab menu open, by category id
+  var renamingShopCatId = null;  // shopping category currently inline-renameable, by id
   var toastTimer = null;
   var flushGen = 0;          // bumped when the queue is wholesale replaced; aborts any in-flight flush
 
@@ -607,6 +704,8 @@
       if (!which || which === 'items') localStorage.setItem(LS.items, JSON.stringify(state.items));
       if (!which || which === 'recipes') localStorage.setItem(LS.recipes, JSON.stringify(state.recipes));
       if (!which || which === 'recipeItems') localStorage.setItem(LS.recipeItems, JSON.stringify(state.recipeItems));
+      if (!which || which === 'shoppingCategories') localStorage.setItem(LS.shoppingCategories, JSON.stringify(state.shoppingCategories));
+      if (!which || which === 'shoppingItems') localStorage.setItem(LS.shoppingItems, JSON.stringify(state.shoppingItems));
       if (!which || which === 'queue') localStorage.setItem(LS.queue, JSON.stringify(state.queue));
       if (!which || which === 'ui') localStorage.setItem(LS.ui, JSON.stringify(state.ui));
     } catch (e) { /* private mode / quota — the app still works in-memory */ }
@@ -615,13 +714,18 @@
     state.items = readLS(LS.items, []) || [];
     state.recipes = readLS(LS.recipes, []) || [];
     state.recipeItems = readLS(LS.recipeItems, []) || [];
+    state.shoppingCategories = readLS(LS.shoppingCategories, []) || [];
+    state.shoppingItems = readLS(LS.shoppingItems, []) || [];
     state.queue = readLS(LS.queue, []) || [];
     var ui = readLS(LS.ui, {}) || {};
     state.ui = {
-      tab: (ui.tab === 'cook') ? 'cook' : 'inventory', // 'shopping' (retired) falls back to inventory
+      tab: (ui.tab === 'cook' || ui.tab === 'shopping') ? ui.tab : 'inventory',
       collapsed: ui.collapsed || {},
       collapsedRecipes: ui.collapsedRecipes || {},
-      cookFilter: ui.cookFilter || 'all'
+      collapsedShopping: ui.collapsedShopping || {},
+      cookFilter: ui.cookFilter || 'all',
+      cookCategories: ui.cookCategories || [],
+      inventoryCategories: ui.inventoryCategories || []
     };
   }
 
@@ -631,8 +735,20 @@
     return STATE_CYCLE[(i + 1) % STATE_CYCLE.length];
   }
 
-  function groupIngredients(items) {
+  // Cheap deterministic string hash -> one of CATEGORY_PALETTE. Purely a
+  // visual scanning aid (colored dot per group); never persisted or synced.
+  function catColorFor(name) {
+    var s = String(name || ''), h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return CATEGORY_PALETTE[Math.abs(h) % CATEGORY_PALETTE.length];
+  }
+
+  // `placeholderNames` are empty categories the user created ahead of adding
+  // anything to them (see addInventoryCategory) — they render as empty groups
+  // so the "+" quick-add is reachable before any item exists.
+  function groupIngredients(items, placeholderNames) {
     var groups = {};
+    (placeholderNames || []).forEach(function (name) { groups[name] = groups[name] || []; });
     (items || []).forEach(function (it) {
       if (it.kind !== 'ingredient') return;
       var key = (it.category && String(it.category).trim()) || 'Uncategorized';
@@ -746,8 +862,11 @@
 
   // Groups cookList() rows by category (Uncategorized last), preserving the
   // makeable-first ordering cookList already applied within each group.
-  function groupRecipeRows(rows) {
+  // `placeholderNames` are empty categories the user created ahead of adding
+  // a recipe to them (see addCookCategory) — same idea as groupIngredients.
+  function groupRecipeRows(rows, placeholderNames) {
     var groups = {};
+    (placeholderNames || []).forEach(function (name) { groups[name] = groups[name] || []; });
     (rows || []).forEach(function (r) {
       var key = (r.category && String(r.category).trim()) || 'Uncategorized';
       (groups[key] || (groups[key] = [])).push(r);
@@ -757,6 +876,31 @@
       if (b === 'Uncategorized') return -1;
       return a.localeCompare(b);
     }).map(function (name) { return { name: name, rows: groups[name] }; });
+  }
+
+  // Shopping categories are their own rows (not derived from item.category),
+  // so a category can exist — and show its "+" — before it holds anything.
+  // Within a category, checked items sink to the bottom (done, out of the way)
+  // ahead of the next unchecked one.
+  function groupShoppingItems(categories, items) {
+    var byCat = {};
+    (categories || []).forEach(function (c) { byCat[c.id] = []; });
+    var orphans = [];
+    (items || []).forEach(function (it) {
+      if (byCat[it.category_id]) byCat[it.category_id].push(it);
+      else orphans.push(it);
+    });
+    function bySortThenName(arr) {
+      return (arr || []).slice().sort(function (a, b) {
+        return ((a.checked ? 1 : 0) - (b.checked ? 1 : 0)) ||
+          ((a.sort_order || 0) - (b.sort_order || 0)) || a.name.localeCompare(b.name);
+      });
+    }
+    var groups = (categories || []).slice().sort(function (a, b) {
+      return ((a.sort_order || 0) - (b.sort_order || 0)) || a.name.localeCompare(b.name);
+    }).map(function (c) { return { id: c.id, name: c.name, items: bySortThenName(byCat[c.id]) }; });
+    if (orphans.length) groups.push({ id: null, name: 'Uncategorized', items: bySortThenName(orphans) });
+    return groups;
   }
 
   // Apply queued writes on top of a base list for one table. Idempotent:
@@ -919,6 +1063,15 @@
       state.items = applyOps(res[0].data || [], queueFor(T_ITEMS), T_ITEMS);
       state.recipes = applyOps(res[1].data || [], queueFor(T_RECIPES), T_RECIPES);
       state.recipeItems = applyOps(res[2].data || [], queueFor(T_RECIPE_ITEMS), T_RECIPE_ITEMS);
+      // Shopping lives in its own migration — fetched best-effort so a device
+      // that hasn't run it yet still syncs everything above just fine.
+      return Promise.all([
+        client.from(T_SHOP_CATS).select('*').catch(function (e) { return { error: e }; }),
+        client.from(T_SHOP_ITEMS).select('*').catch(function (e) { return { error: e }; })
+      ]);
+    }).then(function (shopRes) {
+      if (shopRes[0] && !shopRes[0].error) state.shoppingCategories = applyOps(shopRes[0].data || [], queueFor(T_SHOP_CATS), T_SHOP_CATS);
+      if (shopRes[1] && !shopRes[1].error) state.shoppingItems = applyOps(shopRes[1].data || [], queueFor(T_SHOP_ITEMS), T_SHOP_ITEMS);
       persist();
       state.syncing = false;
       renderAll();
@@ -931,12 +1084,13 @@
   }
 
   // ------------------------------------------------------- actions: items
-  function addItem(kind, name) {
+  function addItem(kind, name, category) {
     name = (name || '').trim();
     if (!name) return null;
     var row = {
       id: uuid(), user_id: uid(), name: name, kind: kind, state: 'have',
-      category: null, is_staple: false, notes: null, created_at: iso(), updated_at: iso()
+      category: (category && String(category).trim()) || null, is_staple: false, notes: null,
+      created_at: iso(), updated_at: iso()
     };
     state.items.push(row);
     persist('items'); renderAll();
@@ -1018,11 +1172,12 @@
   }
 
   // ----------------------------------------------------- actions: recipes
-  function addRecipe(name) {
+  function addRecipe(name, category) {
     name = (name || '').trim();
     if (!name) return null;
     var r = { id: uuid(), user_id: uid(), name: name, notes: null, instructions: null,
-              servings: null, category: null, created_at: iso(), updated_at: iso() };
+              servings: null, category: (category && String(category).trim()) || null,
+              created_at: iso(), updated_at: iso() };
     state.recipes.push(r);
     persist('recipes'); renderAll();
     enqueue({ table: T_RECIPES, kind: 'insert', row: cloneRow(r) });
@@ -1112,6 +1267,138 @@
       state.recipeItems.push(line);
       persist('recipeItems'); renderAll();
       enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(line) });
+    });
+  }
+
+  // ------------------------------------------- actions: local-only categories
+  // Cook/Inventory categories are otherwise just a free-text field on each
+  // recipe/item (see addRecipe/addItem) — a category with nothing in it yet
+  // has nowhere to live, so these placeholder names give the "+ Add category"
+  // flow somewhere to put an empty group before its first row exists. They're
+  // device-local (persisted in state.ui, not synced) and self-prune: once a
+  // real row uses the name, render call sites drop it from the placeholder
+  // list (see renderInventory/renderCook), so nothing here needs cleanup.
+  function addCookCategory(name) {
+    name = (name || '').trim();
+    if (!name) return;
+    var lname = name.toLowerCase();
+    var exists = state.ui.cookCategories.some(function (c) { return c.toLowerCase() === lname; }) ||
+      state.recipes.some(function (r) { return (r.category || '').toLowerCase() === lname; });
+    if (exists) return;
+    state.ui.cookCategories.push(name);
+    persist('ui'); renderCook();
+  }
+  function removeCookCategory(name) {
+    state.ui.cookCategories = state.ui.cookCategories.filter(function (c) { return c !== name; });
+    persist('ui'); renderCook();
+  }
+  function addInventoryCategory(name) {
+    name = (name || '').trim();
+    if (!name) return;
+    var lname = name.toLowerCase();
+    var exists = state.ui.inventoryCategories.some(function (c) { return c.toLowerCase() === lname; }) ||
+      state.items.some(function (i) { return i.kind === 'ingredient' && (i.category || '').toLowerCase() === lname; });
+    if (exists) return;
+    state.ui.inventoryCategories.push(name);
+    persist('ui'); renderInventory();
+  }
+  function removeInventoryCategory(name) {
+    state.ui.inventoryCategories = state.ui.inventoryCategories.filter(function (c) { return c !== name; });
+    persist('ui'); renderInventory();
+  }
+
+  // ------------------------------------------------------- actions: shopping
+  // A separate, deliberately unlinked list: adding a recipe ingredient or an
+  // inventory item never touches this, and adding here never touches them.
+  function addShoppingCategory(name) {
+    name = (name || '').trim();
+    if (!name) return null;
+    var maxSort = state.shoppingCategories.reduce(function (m, c) { return Math.max(m, c.sort_order || 0); }, 0);
+    var row = { id: uuid(), user_id: uid(), name: name, sort_order: maxSort + 1, created_at: iso() };
+    state.shoppingCategories.push(row);
+    persist('shoppingCategories'); renderAll();
+    enqueue({ table: T_SHOP_CATS, kind: 'insert', row: cloneRow(row) });
+    return row;
+  }
+  function renameShoppingCategory(id, name) {
+    var c = findById(state.shoppingCategories, id);
+    name = (name || '').trim();
+    if (!c || !name || name === c.name) return;
+    c.name = name;
+    persist('shoppingCategories'); renderAll();
+    enqueue({ table: T_SHOP_CATS, kind: 'update', id: id, patch: { name: name } });
+  }
+  function deleteShoppingCategory(id) {
+    var idx = state.shoppingCategories.map(function (x) { return x.id; }).indexOf(id);
+    if (idx === -1) return;
+    var cat = state.shoppingCategories.splice(idx, 1)[0];
+    var lines = state.shoppingItems.filter(function (it) { return it.category_id === id; });
+    state.shoppingItems = state.shoppingItems.filter(function (it) { return it.category_id !== id; });
+    persist(); renderAll();
+    lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: it.id }); });
+    enqueue({ table: T_SHOP_CATS, kind: 'delete', id: id });
+    var extra = lines.length ? (' and ' + lines.length + ' item' + (lines.length > 1 ? 's' : '')) : '';
+    toast('Deleted ' + cat.name + extra, function () {
+      state.shoppingCategories.push(cat);
+      lines.forEach(function (it) { state.shoppingItems.push(it); });
+      persist(); renderAll();
+      enqueue({ table: T_SHOP_CATS, kind: 'insert', row: cloneRow(cat) });
+      lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(it) }); });
+    });
+  }
+  function addShoppingItem(categoryId, name, qty) {
+    name = (name || '').trim();
+    if (!name || !findById(state.shoppingCategories, categoryId)) return null;
+    var maxSort = state.shoppingItems.reduce(function (m, it) {
+      return it.category_id === categoryId ? Math.max(m, it.sort_order || 0) : m;
+    }, 0);
+    var row = {
+      id: uuid(), user_id: uid(), category_id: categoryId, name: name,
+      qty: (qty || '').trim() || null, checked: false, sort_order: maxSort + 1, created_at: iso()
+    };
+    state.shoppingItems.push(row);
+    persist('shoppingItems'); renderAll();
+    enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(row) });
+    return row;
+  }
+  function toggleShoppingItem(id) {
+    var it = findById(state.shoppingItems, id);
+    if (!it) return;
+    it.checked = !it.checked;
+    persist('shoppingItems'); renderAll();
+    enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: id, patch: { checked: it.checked } });
+  }
+  function editShoppingItem(id, patch) {
+    var it = findById(state.shoppingItems, id);
+    if (!it) return;
+    for (var k in patch) it[k] = patch[k];
+    persist('shoppingItems'); renderAll();
+    enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: id, patch: cloneRow(patch) });
+  }
+  function removeShoppingItem(id) {
+    var idx = state.shoppingItems.map(function (x) { return x.id; }).indexOf(id);
+    if (idx === -1) return;
+    var row = state.shoppingItems.splice(idx, 1)[0];
+    persist('shoppingItems'); renderAll();
+    enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: id });
+    toast('Removed ' + row.name, function () {
+      state.shoppingItems.push(row);
+      persist('shoppingItems'); renderAll();
+      enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(row) });
+    });
+  }
+  function clearCheckedShopping() {
+    var lines = state.shoppingItems.filter(function (it) { return it.checked; });
+    if (!lines.length) return;
+    var ids = {};
+    lines.forEach(function (it) { ids[it.id] = true; });
+    state.shoppingItems = state.shoppingItems.filter(function (it) { return !ids[it.id]; });
+    persist('shoppingItems'); renderAll();
+    lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: it.id }); });
+    toast('Cleared ' + lines.length + ' checked item' + (lines.length > 1 ? 's' : ''), function () {
+      lines.forEach(function (it) { state.shoppingItems.push(it); });
+      persist('shoppingItems'); renderAll();
+      lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(it) }); });
     });
   }
 
@@ -1252,6 +1539,7 @@
   function renderAll() {
     try {
       renderInventory();
+      renderShopping();
       renderCook();
       renderRecipeViews();
       renderSync();
@@ -1266,22 +1554,28 @@
     if (tabsWrap) tabsWrap.querySelectorAll('button').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-tab') === state.ui.tab);
     });
-    [['inventory', '#view-inventory'], ['cook', '#view-cook']]
+    [['inventory', '#view-inventory'], ['shopping', '#view-shopping'], ['cook', '#view-cook']]
       .forEach(function (p) { var el = $(p[1]); if (el) el.hidden = state.ui.tab !== p[0]; });
+  }
+
+  // A placeholder category (added via "+ Add category" but not yet used)
+  // stops being a placeholder the moment something real uses its name — no
+  // separate cleanup needed, it just naturally falls out of this filter.
+  function activePlaceholders(names, hasReal) {
+    return (names || []).filter(function (name) { return !hasReal(name); });
   }
 
   function renderInventory() {
     var host = $('#ingredients');
     if (host) {
-      var groups = groupIngredients(state.items);
-      host.innerHTML = groups.length ? groups.map(function (g) {
-        var collapsed = !!state.ui.collapsed[g.name];
-        return '<div class="group' + (collapsed ? ' collapsed' : '') + '">' +
-          '<button class="group-head" data-act="toggle-group" data-group="' + esc(g.name) + '">' +
-          '<span class="chev">▼</span>' + esc(g.name) +
-          '<span class="group-count">' + g.items.length + '</span></button>' +
-          '<div class="rows">' + g.items.map(ingredientRow).join('') + '</div></div>';
-      }).join('') : '<div class="empty">No ingredients yet. Add one above.</div>';
+      var placeholders = activePlaceholders(state.ui.inventoryCategories, function (name) {
+        var lname = name.toLowerCase();
+        return state.items.some(function (i) { return i.kind === 'ingredient' && (i.category || '').toLowerCase() === lname; });
+      });
+      var groups = groupIngredients(state.items, placeholders);
+      var html = groups.length ? groups.map(invCategoryHtml).join('')
+        : '<div class="empty">No ingredients yet. Add one above, or start a category below.</div>';
+      host.innerHTML = html + addCategoryBarHtml('inventory');
     }
     var eqHost = $('#equipment');
     if (eqHost) {
@@ -1290,6 +1584,38 @@
       eqHost.innerHTML = eq.length ? eq.map(equipmentRow).join('') : '<div class="empty">No equipment yet.</div>';
     }
     fillCategoryList();
+  }
+
+  function invCategoryHtml(g) {
+    var collapsed = !!state.ui.collapsed[g.name];
+    var quickOpen = openInvQuickAdd === g.name;
+    var canRemove = g.items.length === 0 && g.name !== 'Uncategorized';
+    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
+      '<div class="group-head-row">' +
+      '<button class="group-head" data-act="toggle-group" data-group="' + esc(g.name) + '">' +
+      '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
+      '<span class="group-count">' + g.items.length + '</span></button>' +
+      '<button class="quick-add-btn" data-act="toggle-inv-quickadd" data-cat="' + esc(g.name) + '" aria-label="Add to ' + esc(g.name) + '">+</button>' +
+      (canRemove ? '<button class="kebab" data-act="delete-inv-category" data-cat="' + esc(g.name) + '" aria-label="Remove empty category">🗑</button>' : '') +
+      '</div>' +
+      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Ingredient name" enterkeyhint="done">' +
+        '<button class="qa-go" data-act="inv-quick-add-go" data-cat="' + esc(g.name) + '">Add</button></div>' : '') +
+      '<div class="rows">' + g.items.map(ingredientRow).join('') + '</div></div>';
+  }
+
+  function addCategoryBarHtml(ctx) {
+    var ph = ctx === 'cook' ? 'New category — Desserts, Drinks…'
+      : ctx === 'shop' ? 'New category — Produce, Dairy…'
+      : 'New category — Spices, Bread…';
+    return '<div class="add-category-bar">' +
+      '<input type="text" class="add-cat-input" placeholder="' + ph + '" enterkeyhint="done">' +
+      '<button class="add-cat-go" data-act="add-category" data-ctx="' + ctx + '">+ Add category</button></div>';
+  }
+
+  function focusFirst(hostSel, innerSel) {
+    var host = $(hostSel);
+    var el = host && host.querySelector(innerSel);
+    if (el) el.focus();
   }
 
   function ingredientRow(it) {
@@ -1316,21 +1642,33 @@
       b.classList.toggle('active', b.getAttribute('data-cookfilter') === filter);
     });
     var rows = cookList(filter);
-    if (!rows.length) {
-      host.innerHTML = '<div class="empty">' +
-        (filter === 'makeable' ? 'Nothing you can make right now.' : 'No recipes yet. Add one above.') +
+    var placeholders = activePlaceholders(state.ui.cookCategories, function (name) {
+      var lname = name.toLowerCase();
+      return state.recipes.some(function (r) { return (r.category || '').toLowerCase() === lname; });
+    });
+    var groups = groupRecipeRows(rows, placeholders);
+    var html = groups.length ? groups.map(cookCategoryHtml).join('')
+      : '<div class="empty">' +
+        (filter === 'makeable' ? 'Nothing you can make right now.' : 'No recipes yet. Add one above, or start a category below.') +
         '</div>';
-      return;
-    }
-    var groups = groupRecipeRows(rows);
-    host.innerHTML = groups.map(function (g) {
-      var collapsed = !!state.ui.collapsedRecipes[g.name];
-      return '<div class="group' + (collapsed ? ' collapsed' : '') + '">' +
-        '<button class="group-head" data-act="toggle-recipe-group" data-group="' + esc(g.name) + '">' +
-        '<span class="chev">▼</span>' + esc(g.name) +
-        '<span class="group-count">' + g.rows.length + '</span></button>' +
-        '<div class="rows">' + g.rows.map(recipeCard).join('') + '</div></div>';
-    }).join('');
+    host.innerHTML = html + (filter === 'all' ? addCategoryBarHtml('cook') : '');
+  }
+
+  function cookCategoryHtml(g) {
+    var collapsed = !!state.ui.collapsedRecipes[g.name];
+    var quickOpen = openCookQuickAdd === g.name;
+    var canRemove = g.rows.length === 0 && g.name !== 'Uncategorized';
+    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
+      '<div class="group-head-row">' +
+      '<button class="group-head" data-act="toggle-recipe-group" data-group="' + esc(g.name) + '">' +
+      '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
+      '<span class="group-count">' + g.rows.length + '</span></button>' +
+      '<button class="quick-add-btn" data-act="toggle-cook-quickadd" data-cat="' + esc(g.name) + '" aria-label="Add recipe to ' + esc(g.name) + '">+</button>' +
+      (canRemove ? '<button class="kebab" data-act="delete-cook-category" data-cat="' + esc(g.name) + '" aria-label="Remove empty category">🗑</button>' : '') +
+      '</div>' +
+      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Recipe name" enterkeyhint="done">' +
+        '<button class="qa-go" data-act="cook-quick-add-go" data-cat="' + esc(g.name) + '">Add</button></div>' : '') +
+      '<div class="rows">' + g.rows.map(recipeCard).join('') + '</div></div>';
   }
 
   function recipeCard(r) {
@@ -1352,6 +1690,64 @@
       '<button data-act="edit-recipe" data-id="' + r.id + '">Edit</button>' +
       '<button class="danger" data-act="delete-recipe" data-id="' + r.id + '">Delete</button>' +
       '</div></div>';
+  }
+
+  function renderShopping() {
+    var host = $('#shopping-categories');
+    if (host) {
+      var groups = groupShoppingItems(state.shoppingCategories, state.shoppingItems);
+      var html = groups.length ? groups.map(shoppingCategoryHtml).join('')
+        : '<div class="empty">🛒 Your list is empty.<br>Add a category below, then tap + to add items.</div>';
+      host.innerHTML = html + addCategoryBarHtml('shop');
+    }
+    var pending = state.shoppingItems.filter(function (i) { return !i.checked; }).length;
+    var checked = state.shoppingItems.length - pending;
+    var clearBtn = $('#shop-clear-checked');
+    if (clearBtn) {
+      clearBtn.hidden = !checked;
+      clearBtn.textContent = 'Clear checked (' + checked + ')';
+    }
+    var badge = $('#shop-badge');
+    if (badge) {
+      badge.hidden = !pending;
+      badge.textContent = pending > 99 ? '99+' : String(pending);
+    }
+    var renameInput = host && host.querySelector('.shopcat-rename-input');
+    if (renameInput) { renameInput.focus(); renameInput.select(); }
+  }
+
+  function shoppingCategoryHtml(g) {
+    var key = g.id || 'uncategorized';
+    var collapsed = !!state.ui.collapsedShopping[key];
+    var isReal = g.id != null;
+    var quickOpen = openShopQuickAdd === key;
+    var checkedCount = g.items.filter(function (i) { return i.checked; }).length;
+    var countTxt = g.items.length ? (checkedCount + '/' + g.items.length) : '';
+    var nameBody = (renamingShopCatId === g.id)
+      ? '<input class="shopcat-rename-input" type="text" value="' + esc(g.name) + '">'
+      : '<button class="group-head" data-act="toggle-shop-group" data-group="' + esc(key) + '">' +
+        '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
+        (countTxt ? '<span class="group-count">' + countTxt + '</span>' : '') + '</button>';
+    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
+      '<div class="group-head-row">' + nameBody +
+      (isReal ? '<button class="quick-add-btn" data-act="toggle-shop-quickadd" data-cat="' + g.id + '" aria-label="Add item to ' + esc(g.name) + '">+</button>' : '') +
+      (isReal ? '<button class="kebab" data-act="toggle-shopcat-menu" data-cat="' + g.id + '">⋮</button>' : '') +
+      (isReal ? '<div class="menu"' + (openShopCatMenuId === g.id ? '' : ' hidden') + '>' +
+        '<button data-act="rename-shopcat" data-cat="' + g.id + '">Rename</button>' +
+        '<button class="danger" data-act="delete-shopcat" data-cat="' + g.id + '">Delete</button></div>' : '') +
+      '</div>' +
+      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Item name" enterkeyhint="done">' +
+        '<input type="text" class="qa-qty" placeholder="qty">' +
+        '<button class="qa-go" data-act="shop-quick-add-go" data-cat="' + g.id + '">Add</button></div>' : '') +
+      '<div class="rows">' + (g.items.length ? g.items.map(shoppingItemRow).join('') : '<div class="empty small">Nothing here yet.</div>') + '</div></div>';
+  }
+
+  function shoppingItemRow(it) {
+    return '<div class="row shop-row' + (it.checked ? ' checked' : '') + '">' +
+      '<button class="check" data-act="toggle-shop-item" data-id="' + it.id + '" aria-label="Got it">' + (it.checked ? '✓' : '') + '</button>' +
+      '<span class="name shop-name">' + esc(it.name) + (it.qty ? '<span class="note">' + esc(it.qty) + '</span>' : '') + '</span>' +
+      '<button class="rl-del" data-act="remove-shop-item" data-id="' + it.id + '" aria-label="Remove">×</button>' +
+      '</div>';
   }
 
   function renderRecipeViews() {
@@ -1780,6 +2176,9 @@
       if (openSectionMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-section-menu"]')) {
         openSectionMenuId = null; renderRecipeViews();
       }
+      if (openShopCatMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-shopcat-menu"]')) {
+        openShopCatMenuId = null; renderShopping();
+      }
     });
 
     var sheet = $('#sheet');
@@ -1876,6 +2275,39 @@
 
     // recipe cook (view-only) mode
     var cookBack = $('#rcook-back'); if (cookBack) cookBack.addEventListener('click', closeRecipeViews);
+
+    // Category quick-add rows, "+ Add category" bars and the shopping-category
+    // inline rename input are all rebuilt on every render (like the method
+    // area above), so their Enter-to-submit / commit-on-blur wiring is
+    // delegated onto the stable container instead of bound per-element.
+    [['#ingredients', renderInventory], ['#recipes', renderCook], ['#shopping-categories', renderShopping]]
+      .forEach(function (pair) { bindQuickAddContainer(pair[0]); });
+  }
+
+  function bindQuickAddContainer(hostSel) {
+    var host = $(hostSel);
+    if (!host) return;
+    host.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var t = e.target;
+      if (t.classList.contains('qa-name') || t.classList.contains('qa-qty')) {
+        var goBtn = t.closest('.quick-add-row').querySelector('.qa-go');
+        if (goBtn) goBtn.click();
+      } else if (t.classList.contains('add-cat-input')) {
+        var addBtn = t.closest('.add-category-bar').querySelector('.add-cat-go');
+        if (addBtn) addBtn.click();
+      } else if (t.classList.contains('shopcat-rename-input')) {
+        t.blur();
+      }
+    });
+    host.addEventListener('focusout', function (e) {
+      var t = e.target;
+      if (t.classList.contains('shopcat-rename-input') && renamingShopCatId) {
+        var id = renamingShopCatId; renamingShopCatId = null;
+        renameShoppingCategory(id, t.value);
+        renderShopping();
+      }
+    });
   }
 
   // Touch- and mouse-friendly row reordering via Pointer Events (no library,
@@ -2012,6 +2444,98 @@
     else if (act === 'cook-slide-prev') { goToCookSlide(cookSlideIndex - 1); }
     else if (act === 'cook-slide-next') { goToCookSlide(cookSlideIndex + 1); }
     else if (act === 'cook-slide-go') { goToCookSlide(parseInt(el.getAttribute('data-idx'), 10)); }
+
+    // ---- category quick-add / management (Inventory, Cook, Shopping) ----
+    else if (act === 'toggle-inv-quickadd') {
+      var invCat = el.getAttribute('data-cat');
+      openInvQuickAdd = (openInvQuickAdd === invCat) ? null : invCat;
+      renderInventory();
+      focusFirst('#ingredients', '.qa-name');
+    }
+    else if (act === 'inv-quick-add-go') {
+      var invCat2 = el.getAttribute('data-cat');
+      var invRow = el.closest('.quick-add-row');
+      var invName = invRow && invRow.querySelector('.qa-name');
+      if (invName && invName.value.trim()) {
+        addItem('ingredient', invName.value, invCat2 === 'Uncategorized' ? null : invCat2);
+        openInvQuickAdd = invCat2;
+        renderInventory();
+        focusFirst('#ingredients', '.qa-name');
+      }
+    }
+    else if (act === 'delete-inv-category') { removeInventoryCategory(el.getAttribute('data-cat')); }
+    else if (act === 'toggle-cook-quickadd') {
+      var cookCat = el.getAttribute('data-cat');
+      openCookQuickAdd = (openCookQuickAdd === cookCat) ? null : cookCat;
+      renderCook();
+      focusFirst('#recipes', '.qa-name');
+    }
+    else if (act === 'cook-quick-add-go') {
+      var cookCat2 = el.getAttribute('data-cat');
+      var cookRow = el.closest('.quick-add-row');
+      var cookName = cookRow && cookRow.querySelector('.qa-name');
+      if (cookName && cookName.value.trim()) {
+        var newRecipe = addRecipe(cookName.value, cookCat2 === 'Uncategorized' ? null : cookCat2);
+        openCookQuickAdd = null;
+        if (newRecipe) { justCreatedRecipeId = newRecipe.id; openRecipeEdit(newRecipe.id); }
+      }
+    }
+    else if (act === 'delete-cook-category') { removeCookCategory(el.getAttribute('data-cat')); }
+    else if (act === 'add-category') {
+      var ctx = el.getAttribute('data-ctx');
+      var bar = el.closest('.add-category-bar');
+      var catInput = bar && bar.querySelector('.add-cat-input');
+      if (catInput && catInput.value.trim()) {
+        var catName = catInput.value;
+        if (ctx === 'cook') addCookCategory(catName);
+        else if (ctx === 'inventory') addInventoryCategory(catName);
+        else if (ctx === 'shop') addShoppingCategory(catName);
+        var hostSel = ctx === 'cook' ? '#recipes' : ctx === 'inventory' ? '#ingredients' : '#shopping-categories';
+        focusFirst(hostSel, '.add-cat-input');
+      }
+    }
+
+    // ---- shopping ----
+    else if (act === 'toggle-shop-group') {
+      var shopGroup = el.getAttribute('data-group');
+      state.ui.collapsedShopping[shopGroup] = !state.ui.collapsedShopping[shopGroup];
+      persist('ui'); renderShopping();
+    }
+    else if (act === 'toggle-shop-quickadd') {
+      var shopCat = el.getAttribute('data-cat');
+      openShopQuickAdd = (openShopQuickAdd === shopCat) ? null : shopCat;
+      renderShopping();
+      focusFirst('#shopping-categories', '.qa-name');
+    }
+    else if (act === 'shop-quick-add-go') {
+      var shopCat2 = el.getAttribute('data-cat');
+      var shopRow = el.closest('.quick-add-row');
+      var shopName = shopRow && shopRow.querySelector('.qa-name');
+      var shopQty = shopRow && shopRow.querySelector('.qa-qty');
+      if (shopName && shopName.value.trim()) {
+        addShoppingItem(shopCat2, shopName.value, shopQty ? shopQty.value : '');
+        openShopQuickAdd = shopCat2;
+        renderShopping();
+        focusFirst('#shopping-categories', '.qa-name');
+      }
+    }
+    else if (act === 'toggle-shop-item') { toggleShoppingItem(id); }
+    else if (act === 'remove-shop-item') { removeShoppingItem(id); }
+    else if (act === 'toggle-shopcat-menu') {
+      var shopCatId = el.getAttribute('data-cat');
+      openShopCatMenuId = (openShopCatMenuId === shopCatId) ? null : shopCatId;
+      renderShopping();
+    }
+    else if (act === 'rename-shopcat') {
+      openShopCatMenuId = null;
+      renamingShopCatId = el.getAttribute('data-cat');
+      renderShopping();
+    }
+    else if (act === 'delete-shopcat') {
+      openShopCatMenuId = null;
+      deleteShoppingCategory(el.getAttribute('data-cat'));
+    }
+    else if (act === 'shop-clear-checked') { clearCheckedShopping(); }
   }
 
   // -------------------------------------------------------------- auth
@@ -2121,6 +2645,19 @@
     addRecipeItem: addRecipeItem,
     editRecipeItem: editRecipeItem,
     removeRecipeItem: removeRecipeItem,
+    addCookCategory: addCookCategory,
+    removeCookCategory: removeCookCategory,
+    addInventoryCategory: addInventoryCategory,
+    removeInventoryCategory: removeInventoryCategory,
+    groupShoppingItems: groupShoppingItems,
+    addShoppingCategory: addShoppingCategory,
+    renameShoppingCategory: renameShoppingCategory,
+    deleteShoppingCategory: deleteShoppingCategory,
+    addShoppingItem: addShoppingItem,
+    editShoppingItem: editShoppingItem,
+    toggleShoppingItem: toggleShoppingItem,
+    removeShoppingItem: removeShoppingItem,
+    clearCheckedShopping: clearCheckedShopping,
     sectionsOf: sectionsOf,
     sectionsToText: sectionsToText,
     addMethodSection: addMethodSection,
@@ -2148,6 +2685,8 @@
       state.items = opts.items || [];
       state.recipes = opts.recipes || [];
       state.recipeItems = opts.recipeItems || [];
+      state.shoppingCategories = opts.shoppingCategories || [];
+      state.shoppingItems = opts.shoppingItems || [];
       state.queue = opts.queue || [];
       state.syncing = false;
       persist();
