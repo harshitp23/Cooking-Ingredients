@@ -24,7 +24,7 @@ export function makeStorage(seed = {}) {
 }
 
 const TABLES = [
-  'kitchen_items', 'kitchen_recipes', 'kitchen_recipe_items',
+  'kitchen_items',
   'kitchen_shopping_categories', 'kitchen_shopping_items',
 ];
 

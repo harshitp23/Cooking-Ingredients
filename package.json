@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Single-file kitchen inventory + shopping list + recipes PWA",
+  "description": "Single-file kitchen inventory (ingredients, snacks, equipment) + shopping list PWA",
   "scripts": {
     "test": "node --test \"test/**/*.test.mjs\""
   },

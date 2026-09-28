@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kitchen Inventory</title>
-<meta name="description" content="Kitchen inventory, shopping list and recipes">
-<meta name="theme-color" content="#e7552d">
+<meta name="description" content="Kitchen inventory — ingredients, snacks, equipment — and a shopping list">
+<meta name="theme-color" content="#f5f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <!-- iOS Add to Home Screen -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,40 +18,52 @@
 <link rel="manifest" href="manifest.webmanifest">
 <style>
   :root {
-    --bg: #f6f5f3;
+    --bg: #f5f5f2;
+    --bg-blur: rgba(245, 245, 242, .86);
     --surface: #ffffff;
-    --surface-2: #efedea;
-    --text: #201d1b;
-    --text-dim: #6b6560;
-    --border: #e2ded9;
-    --accent: #e7552d;
-    --have: #2e7d43;
-    --have-bg: #e4f0e6;
-    --low: #a9741a;
-    --low-bg: #f6ecd8;
-    --out: #c0392b;
-    --out-bg: #f7e0dc;
+    --surface-2: #f2f1ed;
+    --fill: #ebeae5;
+    --text: #1b1a19;
+    --text-dim: #85817c;
+    --hair: #efeeea;
+    --border: #e3e1dc;
+    --accent: #ff6b3d;
+    --accent-soft: #ffede5;
+    --have: #23945a;
+    --have-bg: #e3f4ea;
+    --low: #bb7605;
+    --low-bg: #fdf1d9;
+    --out: #e0453a;
+    --out-bg: #fde7e4;
+    --shadow: 0 1px 2px rgba(20, 16, 12, .04), 0 6px 18px rgba(20, 16, 12, .05);
+    --radius: 18px;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #171513;
-      --surface: #211e1b;
-      --surface-2: #2b2723;
-      --text: #f2efec;
-      --text-dim: #a49c95;
-      --border: #37322d;
-      --accent: #ff6a41;
-      --have: #7ec98f;
-      --have-bg: #1e2f22;
-      --low: #e0b064;
-      --low-bg: #322a1a;
-      --out: #f0897b;
-      --out-bg: #35211d;
+      --bg: #121110;
+      --bg-blur: rgba(18, 17, 16, .86);
+      --surface: #1c1b19;
+      --surface-2: #262422;
+      --fill: #2a2826;
+      --text: #f3f1ee;
+      --text-dim: #9a958f;
+      --hair: #292724;
+      --border: #34312d;
+      --accent: #ff7a50;
+      --accent-soft: #3a2419;
+      --have: #5fd08f;
+      --have-bg: #173022;
+      --low: #f0b64a;
+      --low-bg: #33280f;
+      --out: #ff7b70;
+      --out-bg: #3a1c19;
+      --shadow: 0 1px 0 rgba(255, 255, 255, .03);
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
   body {
     background: var(--bg);
@@ -60,419 +73,347 @@
     overscroll-behavior-y: none;
   }
   button, input, textarea, select { font: inherit; color: inherit; }
-  button { cursor: pointer; border: none; background: none; transition: opacity .1s; }
-  button:active { opacity: .78; }
+  input, textarea { font-size: 16px; } /* < 16px makes iOS Safari zoom on focus */
+  button { cursor: pointer; border: none; background: none; padding: 0; transition: transform .08s, opacity .1s; }
+  button:active { transform: scale(.96); }
   [hidden] { display: none !important; }
-  .wrap { max-width: 680px; margin: 0 auto; }
+  svg { display: block; }
+  .wrap { max-width: 720px; margin: 0 auto; }
 
   /* ---- Login ---- */
   #login {
     min-height: 100dvh;
     display: flex; flex-direction: column; justify-content: center;
-    gap: 14px; padding: 24px; max-width: 380px; margin: 0 auto;
+    gap: 12px; padding: 24px; max-width: 380px; margin: 0 auto;
   }
-  #login .logo { font-size: 42px; line-height: 1; margin-bottom: 2px; }
-  #login h1 { font-size: 24px; margin: 0 0 4px; }
-  #login p { color: var(--text-dim); margin: 0 0 12px; }
+  #login .logo {
+    width: 72px; height: 72px; border-radius: 22px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 38px;
+    box-shadow: 0 10px 28px rgba(255, 107, 61, .35); margin-bottom: 8px;
+  }
+  #login h1 { font: 800 30px/1.1 var(--rounded); margin: 0; letter-spacing: -.02em; }
+  #login p { color: var(--text-dim); margin: 0 0 14px; }
   #login input {
-    width: 100%; padding: 14px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--surface);
+    width: 100%; padding: 15px 16px; border-radius: 14px;
+    border: none; background: var(--surface); box-shadow: var(--shadow);
   }
   #login button {
-    width: 100%; padding: 14px; border-radius: 12px;
-    background: var(--accent); color: #fff; font-weight: 600;
+    width: 100%; padding: 15px; border-radius: 14px; margin-top: 4px;
+    background: var(--accent); color: #fff; font-weight: 700;
   }
   #login .err { color: var(--out); min-height: 20px; font-size: 14px; }
 
   /* ---- App shell ---- */
-  #app { min-height: 100dvh; display: flex; flex-direction: column; }
-  header {
+  #app { min-height: 100dvh; }
+  .topbar {
     position: sticky; top: 0; z-index: 20;
-    padding: calc(var(--safe-top) + 10px) 14px 10px;
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
+    padding: calc(var(--safe-top) + 12px) 16px 10px;
+    background: var(--bg-blur);
+    -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
   }
-  header .title { font-weight: 700; font-size: 17px; margin-right: auto; }
+  .title-row { display: flex; align-items: center; gap: 10px; }
+  .title-row h1 {
+    font: 800 30px/1.15 var(--rounded); letter-spacing: -.02em; margin: 0 auto 0 0;
+  }
   .pill {
-    font-size: 12px; padding: 4px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
     background: var(--surface-2); color: var(--text-dim); white-space: nowrap;
   }
   .pill.ok   { background: var(--have-bg); color: var(--have); }
   .pill.warn { background: var(--low-bg); color: var(--low); }
-  .pill.bad  { background: var(--out-bg); color: var(--out); }
-  .linkbtn { font-size: 13px; color: var(--text-dim); text-decoration: underline; }
-
-  main { flex: 1; padding-bottom: calc(66px + var(--safe-bottom)); }
-  section.view { padding: 12px 12px 24px; }
-
-  .addbar {
-    position: sticky; z-index: 10;
-    top: calc(var(--safe-top) + 52px);
-    background: var(--bg); padding: 8px 0 10px;
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex: none;
+    background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; text-transform: uppercase;
   }
-  .addbar input {
-    width: 100%; padding: 12px 14px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--surface);
-  }
-  h2.sec { font-size: 13px; text-transform: uppercase; letter-spacing: .05em;
-    color: var(--text-dim); margin: 18px 4px 8px; }
 
-  .group { margin-bottom: 14px; }
-  .group-head-row { display: flex; align-items: center; gap: 4px; }
-  .group-head {
-    flex: 1; min-width: 0; text-align: left; display: flex; align-items: center; gap: 8px;
-    padding: 10px 6px; font-weight: 600; color: var(--text-dim);
-  }
-  .group-head .chev { transition: transform .15s; font-size: 12px; }
-  .group.collapsed .chev { transform: rotate(-90deg); }
-  .group.collapsed .rows { display: none; }
-  .group-count { margin-left: auto; font-weight: 400; font-size: 13px; }
-  .catdot { width: 8px; height: 8px; border-radius: 50%; background: var(--catclr, var(--accent)); flex: none; }
+  main { padding: 4px 16px calc(150px + var(--safe-bottom)); }
+  main.wrap { box-sizing: content-box; } /* so the list lines up with the header controls */
 
-  .quick-add-btn {
-    flex: none; width: 32px; height: 32px; border-radius: 10px;
-    background: var(--surface-2); color: var(--accent); font-size: 19px; font-weight: 700;
+  /* segmented control (iOS-style) */
+  .seg { display: flex; gap: 2px; background: var(--fill); border-radius: 12px; padding: 3px; margin-top: 12px; }
+  .seg button {
+    flex: 1; padding: 8px 4px; border-radius: 9px; font-size: 14px; font-weight: 600;
+    color: var(--text-dim); display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .seg button:active { transform: none; }
+  .seg button.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
+  .seg-count { font-size: 12px; font-weight: 700; color: var(--text-dim); }
+  .seg-count:empty { display: none; }
+
+  .search {
+    display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    background: var(--fill); border-radius: 12px; padding: 0 12px; color: var(--text-dim);
+  }
+  .search input { flex: 1; min-width: 0; border: none; background: transparent; padding: 10px 0; outline: none; color: var(--text); }
+  .search input::-webkit-search-cancel-button { display: none; }
+  .search .clear { color: var(--text-dim); font-size: 18px; padding: 4px; line-height: 1; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 4px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+    background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+  }
+  .chip.active { background: var(--text); color: var(--bg); }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .dot.low { background: var(--low); }
+  .dot.out { background: var(--out); }
+
+  /* ---- Cards + rows ---- */
+  .list-top { height: 14px; }
+  .card {
+    position: relative; background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 14px;
+  }
+  .cat-head { position: relative; display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 12px; }
+  .cat-toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; text-align: left; padding: 2px 0; }
+  .cat-toggle:active { transform: none; }
+  .cat-emoji {
+    width: 34px; height: 34px; border-radius: 11px; flex: none; font-size: 18px;
     display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--catclr, var(--accent)) 14%, transparent);
   }
-  .group-head-row .kebab { flex: none; padding: 8px 6px; }
-
-  .quick-add-row { display: flex; gap: 6px; margin: 2px 2px 8px; }
-  .quick-add-row .qa-name { flex: 1; min-width: 0; }
-  .quick-add-row .qa-qty { width: 74px; }
-  .quick-add-row input {
-    padding: 10px 11px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
-  }
-  .quick-add-row .qa-go {
-    background: var(--accent); color: #fff; font-weight: 600; padding: 10px 14px;
-    border-radius: 10px; white-space: nowrap;
-  }
-
-  .add-category-bar { display: flex; gap: 6px; margin: 10px 0 4px; }
-  .add-category-bar .add-cat-input {
-    flex: 1; min-width: 0; padding: 11px 12px; border-radius: 10px;
-    border: 1px dashed var(--border); background: transparent;
-  }
-  .add-category-bar .add-cat-go {
-    padding: 11px 14px; border-radius: 10px; border: 1px dashed var(--accent);
-    color: var(--accent); font-weight: 700; white-space: nowrap;
-  }
-
-  .rows { display: flex; flex-direction: column; gap: 6px; }
-  .row {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 4px 6px 4px 4px; min-height: 52px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.03);
-  }
-  .row .name {
-    flex: 1; text-align: left; padding: 12px 8px; border-radius: 8px;
-    font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .row .name .note { display: block; font-size: 12px; color: var(--text-dim); }
-  .row.staple .name { color: var(--text-dim); }
-  .row.staple { opacity: .62; }
-
-  .state {
-    min-width: 74px; padding: 10px 8px; border-radius: 10px;
-    font-size: 13px; font-weight: 700; text-align: center; text-transform: capitalize;
-  }
-  .state.have { background: var(--have-bg); color: var(--have); }
-  .state.low  { background: var(--low-bg);  color: var(--low); }
-  .state.out  { background: var(--out-bg);  color: var(--out); }
-
-  .equip {
-    min-width: 96px; padding: 10px 8px; border-radius: 10px; font-size: 13px;
-    font-weight: 700; text-align: center; border: 1px solid var(--border);
-  }
-  .equip.own { background: var(--have-bg); color: var(--have); border-color: transparent; }
-  .equip.no  { background: var(--surface-2); color: var(--text-dim); }
-
-  .empty { color: var(--text-dim); text-align: center; padding: 32px 12px; line-height: 1.6; }
-  .empty.small { padding: 10px 4px; font-size: 13px; text-align: left; }
-
-  /* ---- Shopping ---- */
-  .shop-toolbar { display: flex; justify-content: flex-end; margin: 0 2px 10px; min-height: 30px; }
-  #shop-clear-checked {
-    font-size: 13px; font-weight: 600; color: var(--accent);
-    background: var(--surface-2); padding: 7px 12px; border-radius: 999px;
-  }
-  .shop-row .check {
-    flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border);
-    display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;
-    color: #fff; transition: background .15s, border-color .15s;
-  }
-  .shop-row.checked .check { background: var(--have); border-color: var(--have); }
-  .shop-row .shop-name { font-size: 15px; }
-  .shop-row.checked .shop-name { color: var(--text-dim); text-decoration: line-through; }
-  .shopcat-rename-input {
-    flex: 1; min-width: 0; font-weight: 600; font-size: 15px; padding: 7px 8px;
-    border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
-  }
-
-  /* ---- nav tab badge ---- */
-  .ico { position: relative; display: inline-block; }
-  .tab-badge {
-    position: absolute; top: -5px; right: -9px; min-width: 15px; height: 15px; padding: 0 3px;
-    border-radius: 999px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; line-height: 1;
-  }
-
-  .tag {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 7px;
-    border-radius: 6px; white-space: nowrap;
-  }
-  .tag.out { background: var(--out-bg); color: var(--out); }
-  .tag.low { background: var(--low-bg); color: var(--low); }
-  .tag.have { background: var(--have-bg); color: var(--have); }
-  .tag.staple, .tag.untracked { background: var(--surface-2); color: var(--text-dim); }
-
-  /* ---- Cook ---- */
-  .cook-filter { display: flex; gap: 8px; margin: 2px 0 12px; }
-  .cook-filter button {
-    padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  .cat-name { font: 700 16.5px/1.2 var(--rounded); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat-count { color: var(--text-dim); font-size: 13px; font-weight: 600; flex: none; }
+  .chev { color: var(--text-dim); transition: transform .18s; flex: none; margin-left: 2px; }
+  .collapsed .chev { transform: rotate(-90deg); }
+  .collapsed .rows, .collapsed .quick-add-row { display: none; }
+  .icon-btn {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
     background: var(--surface-2); color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; line-height: 1;
   }
-  .cook-filter button.active { background: var(--accent); color: #fff; }
+  .icon-btn.add { color: var(--accent); background: var(--accent-soft); font-size: 22px; font-weight: 600; }
+  .cat-rename-input {
+    flex: 1; min-width: 0; font-weight: 700; padding: 8px 10px;
+    border-radius: 10px; border: none; background: var(--surface-2); outline: 2px solid var(--accent);
+  }
 
-  .add-recipe-btn {
-    width: 100%; padding: 13px; border-radius: 12px; margin: 8px 0 14px;
-    background: var(--accent); color: #fff; font-weight: 700; font-size: 15px;
+  .rows { padding-bottom: 4px; }
+  .item-row {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    min-height: 56px; padding: 0 10px 0 14px;
+  }
+  .item-row + .item-row::before {
+    content: ''; position: absolute; top: 0; left: 14px; right: 14px; height: 1px; background: var(--hair);
+  }
+  .item-main {
+    flex: 1; min-width: 0; text-align: left; padding: 10px 0;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .item-main:active { transform: none; opacity: .6; }
+  .item-name { font-size: 15.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-note { font-size: 12.5px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item-note.bad { color: var(--out); font-weight: 600; }
+  .item-row.staple .item-name { color: var(--text-dim); }
+  .on-list { flex: none; color: var(--accent); display: flex; }
+  .thumb {
+    width: 38px; height: 38px; border-radius: 12px; flex: none; background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .item-row.zero .thumb { filter: grayscale(1); opacity: .55; }
+  .item-row.zero .item-name { color: var(--text-dim); }
+
+  .state-chip {
+    flex: none; min-width: 84px; padding: 7px 10px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .state-chip::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .state-chip.have { background: var(--have-bg); color: var(--have); }
+  .state-chip.low  { background: var(--low-bg);  color: var(--low); }
+  .state-chip.out  { background: var(--out-bg);  color: var(--out); }
+
+  .stepper { flex: none; display: flex; align-items: center; background: var(--surface-2); border-radius: 999px; padding: 3px; }
+  .stepper button {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface);
+    font-size: 19px; font-weight: 600; line-height: 1; color: var(--text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .08); display: flex; align-items: center; justify-content: center;
+  }
+  .stepper button[disabled] { opacity: .35; }
+  .stepper .count { min-width: 34px; text-align: center; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+  .quick-add-row { display: flex; gap: 6px; padding: 0 10px 10px 12px; }
+  .quick-add-row input {
+    min-width: 0; padding: 11px 12px; border-radius: 12px; border: none; background: var(--surface-2);
+  }
+  .quick-add-row .qa-name { flex: 1; }
+  .quick-add-row .qa-qty { width: 76px; }
+  .quick-add-row .qa-go { background: var(--accent); color: #fff; font-weight: 700; padding: 0 16px; border-radius: 12px; }
+
+  .add-category-bar { display: flex; gap: 8px; margin: 4px 0 12px; }
+  .add-category-bar input {
+    flex: 1; min-width: 0; padding: 13px 14px; border-radius: 14px;
+    border: 1.5px dashed var(--border); background: transparent;
+  }
+  .add-category-bar input:placeholder-shown + button { display: none; }
+  .add-category-bar button {
+    padding: 0 16px; border-radius: 14px; color: var(--accent); font-weight: 700;
+    background: var(--accent-soft); white-space: nowrap;
   }
 
-  .recipe-card {
-    position: relative; display: flex; align-items: flex-start; gap: 4px; width: 100%;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 6px 6px 6px 0; margin-bottom: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.03);
-  }
-  .recipe-card .rc-open {
-    flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center;
-    gap: 6px 10px; text-align: left; padding: 8px 6px 8px 12px;
-  }
-  .recipe-card .rc-name { font-weight: 600; font-size: 15px; flex: 1; min-width: 60%; }
-  .recipe-card .rc-meta { width: 100%; font-size: 12px; color: var(--text-dim); }
-
-  /* ---- kebab menu (recipe cards + method steps) ---- */
-  .kebab { flex: none; font-size: 20px; color: var(--text-dim); padding: 8px 12px; line-height: 1; }
   .menu {
-    position: absolute; right: 8px; top: 38px; z-index: 5; min-width: 130px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.18); display: flex; flex-direction: column; overflow: hidden;
+    position: absolute; right: 8px; top: 48px; z-index: 6; min-width: 170px;
+    background: var(--surface); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .18), 0 0 0 1px var(--border);
   }
-  .menu button { padding: 11px 14px; text-align: left; font-size: 14px; }
-  .menu button + button { border-top: 1px solid var(--border); }
+  .menu button { display: block; width: 100%; padding: 13px 16px; text-align: left; font-size: 15px; }
+  .menu button:active { transform: none; background: var(--surface-2); }
+  .menu button + button { border-top: 1px solid var(--hair); }
   .menu button.danger { color: var(--out); }
 
-  /* ---- Recipe edit / cook (full screen) ---- */
-  #recipe-edit, #recipe-cook {
-    position: fixed; inset: 0; z-index: 45; background: var(--bg); overflow: auto;
-  }
-  #recipe-edit header, #recipe-cook header { position: sticky; top: 0; }
-  #recipe-edit .rd-body, #recipe-cook .rd-body { padding: 14px 14px calc(40px + var(--safe-bottom)); }
-  #rd-back, #rcook-back { font-size: 15px; color: var(--accent); margin-right: auto; font-weight: 600; }
-  .save-btn { background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; padding: 7px 14px; border-radius: 999px; }
-  .rd-name {
-    width: 100%; font-size: 22px; font-weight: 700; padding: 8px 6px; margin: 4px 0;
-    border: none; border-radius: 8px; background: transparent;
-  }
-  .rd-name:focus { background: var(--surface); outline: 1px solid var(--border); }
-  .rd-category {
-    width: 100%; font-size: 13px; padding: 8px 10px; margin: 0 0 14px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
-  }
-  #rcook-name { font-size: 22px; font-weight: 700; padding: 8px 6px; margin: 4px 0 12px; }
+  .empty { color: var(--text-dim); text-align: center; padding: 48px 20px; line-height: 1.55; }
+  .empty .big { font-size: 46px; margin-bottom: 8px; }
+  .empty b { color: var(--text); display: block; font: 700 18px/1.3 var(--rounded); margin-bottom: 4px; }
+  .empty.small { padding: 4px 14px 14px; font-size: 13.5px; text-align: left; }
+  .footnote { color: var(--text-dim); font-size: 13px; text-align: center; margin: 4px 0 12px; }
 
-  .rd-line {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 8px 8px 8px 12px; margin-bottom: 6px;
+  /* ---- Shopping ---- */
+  .shop-summary { padding: 16px 16px 14px; margin-top: 14px; }
+  .ss-top { display: flex; align-items: flex-end; gap: 12px; }
+  .ss-big { font: 800 34px/1 var(--rounded); letter-spacing: -.02em; }
+  .ss-sub { color: var(--text-dim); font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .ss-top .grow { flex: 1; }
+  .pill-btn {
+    font-size: 13px; font-weight: 700; color: var(--accent); background: var(--accent-soft);
+    padding: 8px 13px; border-radius: 999px; white-space: nowrap;
   }
-  .rd-line .rl-name { flex: 1; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rd-line .rl-qty {
-    width: 92px; padding: 7px 8px; border-radius: 8px; font-size: 13px;
-    border: 1px solid var(--border); background: var(--bg);
-  }
-  .rd-line .rl-del { color: var(--text-dim); font-size: 20px; padding: 4px 8px; line-height: 1; }
+  .progress { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 14px; }
+  .progress span { display: block; height: 100%; border-radius: 99px; background: var(--have); transition: width .25s ease; }
 
-  .rd-addline { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .rd-addline input {
-    padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+  .check {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    transition: background .15s, border-color .15s;
   }
-  .rd-addline #rd-add-name { flex: 1; min-width: 140px; }
-  .rd-addline #rd-add-qty { width: 110px; }
-  .rd-addline #rd-add-go { background: var(--accent); color: #fff; font-weight: 600; padding: 11px 16px; border-radius: 10px; }
-
-  /* ---- Method: sections + drag-reorderable steps ---- */
-  .method-section {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 4px; margin-bottom: 10px; transition: transform .12s ease;
-  }
-  .method-section.dragging { box-shadow: 0 10px 26px rgba(0,0,0,.18); z-index: 20; position: relative; }
-  .section-head { position: relative; display: flex; align-items: center; gap: 2px; padding: 4px 2px; }
-  .section-head .section-name {
-    flex: 1; min-width: 0; font-weight: 700; font-size: 13px; padding: 8px 6px;
-    text-transform: uppercase; letter-spacing: .03em; color: var(--text-dim);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .section-head .section-name.ph { font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .7; }
-  .section-name-edit-input {
-    flex: 1; min-width: 0; font-weight: 700; font-size: 14px; padding: 7px 8px;
-    border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
-  }
-  .drag-handle {
-    flex: none; padding: 6px; font-size: 16px; color: var(--text-dim);
-    cursor: grab; touch-action: none; user-select: none;
+  .check svg { opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s; }
+  .shop-row.checked .check { background: var(--have); border-color: var(--have); }
+  .shop-row.checked .check svg { opacity: 1; transform: none; }
+  .shop-row.checked .item-name { color: var(--text-dim); text-decoration: line-through; }
+  .row-x { flex: none; color: var(--text-dim); font-size: 22px; line-height: 1; padding: 6px 6px; }
+  .src-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    padding: 2px 6px; border-radius: 6px; background: var(--out-bg); color: var(--out); margin-left: 4px; vertical-align: 1px;
   }
 
-  .step-list { display: flex; flex-direction: column; }
-  .step-row {
-    position: relative; display: flex; align-items: center; gap: 2px;
-    background: var(--surface); border-radius: 10px; padding: 2px; transition: transform .12s ease;
+  /* ---- FAB + bottom tabs ---- */
+  #fab {
+    position: fixed; z-index: 31; right: max(16px, calc(50% - 344px));
+    bottom: calc(80px + var(--safe-bottom));
+    width: 58px; height: 58px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 24px rgba(255, 107, 61, .4), 0 2px 6px rgba(0, 0, 0, .12);
   }
-  .step-row.dragging { background: var(--surface-2); box-shadow: 0 6px 16px rgba(0,0,0,.15); z-index: 20; position: relative; }
-  .step-row .step-num { flex: none; width: 18px; text-align: center; color: var(--text-dim); font-weight: 700; font-size: 13px; }
-  .step-row .step-text { flex: 1; min-width: 0; font-size: 15px; padding: 8px 4px; }
-  .step-row .step-edit-input {
-    flex: 1; min-width: 0; padding: 7px 8px; border-radius: 8px; font-size: 15px;
-    border: 1px solid var(--border); background: var(--bg);
-  }
-  .step-row .kebab { padding: 6px 8px; font-size: 18px; }
-
-  .step-addline { display: flex; gap: 6px; margin: 6px 4px 4px; }
-  .step-addline input {
-    flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg);
-  }
-  .step-addline button { background: var(--accent); color: #fff; font-weight: 600; padding: 10px 14px; border-radius: 10px; }
-
-  .add-section-bar { display: flex; gap: 6px; margin-top: 4px; }
-  .add-section-bar input {
-    flex: 1; padding: 11px 12px; border-radius: 10px; border: 1px dashed var(--border); background: transparent;
-  }
-  .add-section-bar button {
-    padding: 11px 14px; border-radius: 10px; border: 1px dashed var(--accent);
-    color: var(--accent); font-weight: 700; white-space: nowrap;
-  }
-
-  /* ---- Cooking mode (read-only) ---- */
-  .rcook-banner {
-    margin: 0 0 12px; padding: 11px 14px; border-radius: 12px; font-size: 14px; font-weight: 600;
-  }
-  .rcook-banner.bad { background: var(--out-bg); color: var(--out); }
-  .rcook-banner.warn { background: var(--low-bg); color: var(--low); }
-  #rcook-lines .rcook-line {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 10px 4px; border-bottom: 1px solid var(--border); font-size: 15px;
-  }
-  #rcook-lines .rcook-line-right { display: flex; align-items: center; gap: 8px; flex: none; }
-  #rcook-lines .rcook-line .qty { color: var(--text-dim); }
-  .rcook-section-name {
-    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-    color: var(--text-dim); margin: 14px 2px 6px;
-  }
-  .rcook-step-list { padding: 0; margin: 0 0 4px; list-style: none; counter-reset: step; }
-  .rcook-step-list li {
-    counter-increment: step; position: relative; padding: 10px 8px 10px 40px;
-    margin-bottom: 8px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; font-size: 15px; line-height: 1.5;
-  }
-  .rcook-step-list li::before {
-    content: counter(step); position: absolute; left: 10px; top: 10px;
-    font-weight: 700; color: var(--accent);
-  }
-
-  /* Method carousel: one section per swipeable slide, like a carousel post. */
-  .rcook-carousel { position: relative; margin-top: 6px; }
-  .rcook-track {
-    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none; border-radius: 4px;
-  }
-  .rcook-track::-webkit-scrollbar { display: none; }
-  .rcook-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; padding: 0 1px; }
-  .rcook-slide-title {
-    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-    color: var(--text-dim); margin: 2px 2px 8px;
-  }
-  .rcook-nav {
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-    width: 32px; height: 32px; border-radius: 50%; background: var(--surface);
-    border: 1px solid var(--border); color: var(--text); font-size: 16px; line-height: 1;
-    box-shadow: 0 2px 10px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center;
-  }
-  .rcook-nav.prev { left: -4px; }
-  .rcook-nav.next { right: -4px; }
-  .rcook-nav:disabled { opacity: .2; }
-  .rcook-dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0 4px; }
-  .rcook-dots .dot { width: 7px; height: 7px; padding: 0; border-radius: 50%; background: var(--border); transition: width .15s, border-radius .15s; }
-  .rcook-dots .dot.active { width: 18px; border-radius: 4px; background: var(--accent); }
-
-  /* ---- Bottom tabs ---- */
+  body.typing #fab { opacity: 0; pointer-events: none; transform: scale(.8); }
+  #fab { transition: opacity .15s, transform .15s; }
   nav.tabs {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
-    display: flex; background: var(--surface); border-top: 1px solid var(--border);
-    padding-bottom: var(--safe-bottom);
+    display: flex; justify-content: center; gap: 8px;
+    background: var(--bg-blur); border-top: 1px solid var(--hair);
+    -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
+    padding: 6px 12px calc(6px + var(--safe-bottom));
   }
   nav.tabs button {
-    flex: 1; padding: 10px 4px 8px; font-size: 11px; font-weight: 600;
+    flex: 1; max-width: 200px; padding: 6px 4px; font-size: 11.5px; font-weight: 700;
     color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 3px;
   }
-  nav.tabs button { position: relative; }
+  nav.tabs button:active { transform: none; }
   nav.tabs button.active { color: var(--accent); }
-  nav.tabs button.active::before {
-    content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
-    width: 22px; height: 3px; border-radius: 2px; background: var(--accent);
+  .ico { position: relative; }
+  .tab-badge {
+    position: absolute; top: -4px; right: -10px; min-width: 17px; height: 17px; padding: 0 4px;
+    border-radius: 999px; background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+    box-shadow: 0 0 0 2px var(--bg);
   }
-  nav.tabs .ico { font-size: 18px; line-height: 1; }
 
-  /* ---- Edit sheet ---- */
+  /* ---- Bottom sheet ---- */
   #sheet {
-    position: fixed; inset: 0; z-index: 48; display: flex; align-items: flex-end;
-    background: rgba(0,0,0,.35);
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(0, 0, 0, .38); animation: fade-in .18s ease;
   }
   #sheet .card {
-    background: var(--surface); width: 100%; border-radius: 18px 18px 0 0;
-    padding: 16px 16px calc(20px + var(--safe-bottom));
-    display: flex; flex-direction: column; gap: 12px;
-    max-width: 560px; margin: 0 auto;
+    width: 100%; max-width: 560px; margin: 0; border-radius: 24px 24px 0 0;
+    padding: 8px 18px calc(20px + var(--safe-bottom));
+    max-height: 92dvh; overflow: auto; animation: sheet-up .24s cubic-bezier(.2, .9, .3, 1);
   }
-  #sheet label { font-size: 13px; color: var(--text-dim); display: block; margin-bottom: 4px; }
-  #sheet input[type=text], #sheet textarea {
-    width: 100%; padding: 12px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--bg);
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sheet-up { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .grabber { width: 38px; height: 5px; border-radius: 3px; background: var(--border); margin: 2px auto 12px; }
+  .sheet-head { display: flex; align-items: center; margin-bottom: 14px; }
+  .sheet-head h2 { font: 800 22px/1.2 var(--rounded); margin: 0 auto 0 0; letter-spacing: -.01em; }
+  .field { margin-bottom: 16px; }
+  .field > label { display: block; font-size: 13px; font-weight: 700; color: var(--text-dim); margin: 0 0 7px 2px; }
+  .field input[type=text], .field textarea, .field input[type=email] {
+    width: 100%; padding: 13px 14px; border-radius: 13px; border: none; background: var(--surface-2); outline: none;
   }
-  #sheet .togglerow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  #sheet .actions { display: flex; gap: 10px; margin-top: 4px; }
-  #sheet .actions button { flex: 1; padding: 13px; border-radius: 11px; font-weight: 600; }
-  #sheet .save { background: var(--accent); color: #fff; }
-  #sheet .cancel { background: var(--surface-2); }
-  #sheet .del { background: var(--out-bg); color: var(--out); flex: 0 0 auto; padding: 13px 16px; }
+  .field input:focus, .field textarea:focus { box-shadow: 0 0 0 2px var(--accent); }
+  .field .chips { padding: 0 0 8px; flex-wrap: wrap; overflow: visible; }
+  .field .chip { box-shadow: none; background: var(--surface-2); }
+  .field .chip.active { background: var(--text); color: var(--bg); }
+  .seg.states { margin: 0; }
+  .seg.states button.active.have { color: var(--have); }
+  .seg.states button.active.low { color: var(--low); }
+  .seg.states button.active.out { color: var(--out); }
+  .big-stepper { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 4px 0; }
+  .big-stepper button {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2);
+    font-size: 24px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  }
+  .big-stepper .count { font: 800 34px/1 var(--rounded); min-width: 60px; text-align: center; font-variant-numeric: tabular-nums; }
+  .toggle-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: var(--surface-2); }
+  .toggle-row span { flex: 1; font-size: 14px; }
+  .toggle-row small { display: block; color: var(--text-dim); font-size: 12.5px; }
+  .toggle-row input { width: 22px; height: 22px; accent-color: var(--accent); }
+  .btn-primary {
+    width: 100%; padding: 15px; border-radius: 15px; background: var(--accent); color: #fff;
+    font-weight: 800; font-size: 16px; margin-top: 4px;
+  }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 10px; }
+  .btn-soft {
+    flex: 1; padding: 13px; border-radius: 14px; background: var(--surface-2); font-weight: 700; font-size: 14.5px;
+  }
+  .btn-soft.danger { color: var(--out); background: var(--out-bg); }
+  .btn-soft.accent { color: var(--accent); background: var(--accent-soft); }
+  .hint { color: var(--text-dim); font-size: 12.5px; text-align: center; margin: 10px 0 0; }
+  .acct-status { padding: 14px; border-radius: 14px; background: var(--surface-2); font-size: 14px; margin-bottom: 12px; }
+  .acct-status b { display: block; font-size: 15px; margin-bottom: 2px; }
 
   /* ---- Toast ---- */
   #toast {
-    position: fixed; left: 12px; right: 12px; z-index: 60;
-    bottom: calc(74px + var(--safe-bottom));
-    background: #2b2723; color: #fff; border-radius: 12px;
+    position: fixed; z-index: 60; left: 16px; right: 88px;
+    bottom: calc(84px + var(--safe-bottom));
+    background: #232120; color: #fff; border-radius: 14px;
     padding: 12px 14px; display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 6px 24px rgba(0,0,0,.28); max-width: 560px; margin: 0 auto;
-    animation: toast-in .18s ease;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
+    animation: toast-in .2s ease;
   }
   @keyframes toast-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
   #toast .toast-msg { flex: 1; font-size: 14px; }
-  #toast .toast-undo {
-    color: #ffb59e; font-weight: 700; padding: 6px 4px; font-size: 14px; text-transform: uppercase;
-  }
+  #toast .toast-undo { color: #ffae8f; font-weight: 800; padding: 4px; font-size: 14px; }
 
-  @media (min-width: 720px) {
-    section.view, #recipe-edit .rd-body, #recipe-cook .rd-body { max-width: 680px; margin: 0 auto; }
-    header > *, nav.tabs { }
+  @media (min-width: 760px) {
+    #sheet { align-items: center; }
+    #sheet .card { border-radius: 24px; padding-bottom: 20px; }
+    .grabber { visibility: hidden; height: 0; margin-bottom: 8px; }
+    #toast { left: 50%; right: auto; width: 440px; transform: translateX(-50%); animation: none; }
+  }
+  @media (min-width: 980px) {
+    .wrap { max-width: 1000px; }
+    #fab { right: max(16px, calc(50% - 484px)); }
+    .cat-grid { columns: 2; column-gap: 16px; }
+    .cat-grid > .card { break-inside: avoid; display: inline-block; width: 100%; }
   }
 </style>
 </head>
 <body>
 
 <div id="login" hidden>
-  <div class="logo">🍲</div>
-  <h1>Kitchen Inventory</h1>
-  <p>Sign in with your account.</p>
+  <div class="logo">🧺</div>
+  <h1>Kitchen</h1>
+  <p>Your pantry, snacks, gear and shopping list — on every device.</p>
   <input id="login-email" type="email" autocomplete="username" inputmode="email" placeholder="Email">
   <input id="login-password" type="password" autocomplete="current-password" placeholder="Password">
   <div class="err" id="login-err"></div>
@@ -480,123 +421,61 @@
 </div>
 
 <div id="app" hidden>
-  <header>
-    <span class="title">Kitchen</span>
-    <span class="pill" id="sync-pill">…</span>
-    <button class="linkbtn" id="signout">Sign out</button>
-  </header>
-
-  <main>
-    <section class="view" id="view-inventory">
-      <div class="addbar">
-        <input id="add-ingredient" type="text" enterkeyhint="done"
-               placeholder="Add ingredient — type &amp; press enter">
+  <div class="topbar">
+    <div class="wrap">
+      <div class="title-row">
+        <h1 id="page-title">Inventory</h1>
+        <span class="pill" id="sync-pill">…</span>
+        <button class="avatar" id="acct-btn" data-act="open-account" aria-label="Account">·</button>
       </div>
-      <div id="ingredients"></div>
-
-      <h2 class="sec">Equipment</h2>
-      <div class="addbar" style="top:auto;position:static;padding-top:0">
-        <input id="add-equipment" type="text" enterkeyhint="done"
-               placeholder="Add equipment — type &amp; press enter">
+      <div id="inv-controls">
+        <div class="seg" id="inv-seg" role="tablist">
+          <button data-invsec="ingredients" class="active">Ingredients <span class="seg-count"></span></button>
+          <button data-invsec="snacks">Snacks <span class="seg-count"></span></button>
+          <button data-invsec="equipment">Equipment <span class="seg-count"></span></button>
+        </div>
+        <label class="search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="inv-search" type="search" placeholder="Search ingredients" autocomplete="off" enterkeyhint="search">
+          <button class="clear" id="inv-search-clear" hidden aria-label="Clear search">×</button>
+        </label>
       </div>
-      <div id="equipment"></div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section id="view-inventory">
+      <div class="chips" id="inv-filters"></div>
+      <div class="list-top"></div>
+      <div id="inv-list"></div>
     </section>
 
-    <section class="view" id="view-shopping" hidden>
-      <div class="shop-toolbar">
-        <button id="shop-clear-checked" data-act="shop-clear-checked" hidden>Clear checked</button>
-      </div>
+    <section id="view-shopping" hidden>
+      <div id="shop-summary"></div>
+      <div class="list-top"></div>
       <div id="shopping-categories"></div>
-    </section>
-
-    <section class="view" id="view-cook" hidden>
-      <button id="add-recipe-btn" class="add-recipe-btn">+ Add recipe</button>
-      <div class="cook-filter">
-        <button data-cookfilter="all" class="active">All recipes</button>
-        <button data-cookfilter="makeable">Can make now</button>
-      </div>
-      <div id="recipes"></div>
     </section>
   </main>
 
+  <button id="fab" data-act="fab" aria-label="Add">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
   <nav class="tabs">
-    <button data-tab="inventory" class="active"><span class="ico">🧺</span>Inventory</button>
-    <button data-tab="shopping"><span class="ico">🛒<span class="tab-badge" id="shop-badge" hidden></span></span>Shopping</button>
-    <button data-tab="cook"><span class="ico">🍳</span>Cook</button>
+    <button data-tab="inventory" class="active">
+      <span class="ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 8.5 12 4l8 4.5v9L12 22l-8-4.5z"/><path d="m4 8.5 8 4.5 8-4.5M12 13v9"/></svg></span>
+      Inventory
+    </button>
+    <button data-tab="shopping">
+      <span class="ico"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h2.2l2.3 11h10.8l2-8H6.3"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg><span class="tab-badge" id="shop-badge" hidden></span></span>
+      Shopping
+    </button>
   </nav>
 </div>
 
-<div id="recipe-edit" hidden>
-  <header>
-    <button id="rd-back">‹ Cook</button>
-    <span class="pill" id="rd-status"></span>
-    <button class="linkbtn" id="rd-delete">Delete</button>
-    <button id="rd-save" class="save-btn">Save</button>
-  </header>
-  <div class="rd-body">
-    <input id="rd-name" class="rd-name" type="text" aria-label="Recipe name">
-    <input id="rd-category" class="rd-category" type="text" list="recipe-cat-list"
-           placeholder="Category — breakfast, lunch, dinner, snacks, sauces…">
-
-    <h2 class="sec">Ingredients</h2>
-    <div id="rd-lines"></div>
-    <div class="rd-addline">
-      <input id="rd-add-name" type="text" placeholder="Ingredient" list="ing-list" enterkeyhint="done">
-      <input id="rd-add-qty" type="text" placeholder="Qty" enterkeyhint="done">
-      <button id="rd-add-go">Add</button>
-    </div>
-
-    <h2 class="sec">Method</h2>
-    <div id="rd-method"></div>
-  </div>
-</div>
-
-<div id="recipe-cook" hidden>
-  <header>
-    <button id="rcook-back">‹ Cook</button>
-    <span class="pill" id="rcook-status"></span>
-  </header>
-  <div class="rd-body">
-    <div id="rcook-banner" class="rcook-banner" hidden></div>
-    <h1 id="rcook-name"></h1>
-
-    <h2 class="sec">Ingredients</h2>
-    <div id="rcook-lines"></div>
-
-    <h2 class="sec">Method</h2>
-    <div id="rcook-steps"></div>
-  </div>
-</div>
-
 <div id="sheet" hidden>
-  <div class="card">
-    <div>
-      <label for="sheet-name">Name</label>
-      <input id="sheet-name" type="text">
-    </div>
-    <div>
-      <label for="sheet-category">Category</label>
-      <input id="sheet-category" type="text" list="cat-list" placeholder="fridge, pantry, spice rack…">
-      <datalist id="cat-list"></datalist>
-    </div>
-    <div class="togglerow">
-      <label for="sheet-staple" style="margin:0">Staple — always assumed present, never on the shopping list</label>
-      <input id="sheet-staple" type="checkbox">
-    </div>
-    <div>
-      <label for="sheet-notes">Notes</label>
-      <textarea id="sheet-notes" rows="2"></textarea>
-    </div>
-    <div class="actions">
-      <button class="del" id="sheet-del">Delete</button>
-      <button class="cancel" id="sheet-cancel">Cancel</button>
-      <button class="save" id="sheet-save">Save</button>
-    </div>
-  </div>
+  <div class="card" role="dialog" aria-modal="true"></div>
 </div>
-
-<datalist id="ing-list"></datalist>
-<datalist id="recipe-cat-list"></datalist>
 
 <div id="toast" hidden>
   <span class="toast-msg"></span>
@@ -612,66 +491,128 @@
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqcXF6YXR6emR3cGl1aXF3aXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NDE0MDMsImV4cCI6MjEwNDExNzQwM30.Msz2NfptzXdLAMI-ZDKyVIp3qLAr3ZAtdMli-GRZHJ4';
 
   var T_ITEMS = 'kitchen_items';
-  var T_RECIPES = 'kitchen_recipes';
-  var T_RECIPE_ITEMS = 'kitchen_recipe_items';
   var T_SHOP_CATS = 'kitchen_shopping_categories';
   var T_SHOP_ITEMS = 'kitchen_shopping_items';
 
   var LS = {
     items: 'kitchen.items.v1',
-    recipes: 'kitchen.recipes.v1',
-    recipeItems: 'kitchen.recipeItems.v1',
     shoppingCategories: 'kitchen.shoppingCategories.v1',
     shoppingItems: 'kitchen.shoppingItems.v1',
     queue: 'kitchen.queue.v1',
     ui: 'kitchen.ui.v1'
   };
+  // Caches from the removed Cook tab — the rows stay in Supabase, only the
+  // local copies are dropped.
+  var LEGACY_LS = ['kitchen.recipes.v1', 'kitchen.recipeItems.v1'];
   var COLS = {};
-  COLS[T_ITEMS] = ['id', 'user_id', 'name', 'kind', 'state', 'category', 'is_staple', 'notes'];
-  COLS[T_RECIPES] = ['id', 'user_id', 'name', 'notes', 'instructions', 'servings', 'category'];
-  COLS[T_RECIPE_ITEMS] = ['id', 'user_id', 'recipe_id', 'item_id', 'name', 'display_qty', 'sort_order'];
+  COLS[T_ITEMS] = ['id', 'user_id', 'name', 'kind', 'state', 'category', 'is_staple', 'notes', 'qty'];
   COLS[T_SHOP_CATS] = ['id', 'user_id', 'name', 'sort_order'];
   COLS[T_SHOP_ITEMS] = ['id', 'user_id', 'category_id', 'name', 'qty', 'checked', 'sort_order'];
 
   var STATE_CYCLE = ['have', 'low', 'out'];
-  var DEFAULT_RECIPE_CATEGORIES = ['Starter', 'Main', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Sauces', 'Desserts', 'Drinks'];
+  var STATE_LABEL = { have: 'In stock', low: 'Low', out: 'Out' };
+  var SECTIONS = ['ingredients', 'snacks', 'equipment'];
+  var KIND_OF = { ingredients: 'ingredient', snacks: 'snack', equipment: 'equipment' };
+  var KIND_LABEL = { ingredient: 'ingredient', snack: 'snack', equipment: 'equipment' };
+  var SNACK_SHOP_CATEGORY = 'Snacks';
+  var DEFAULT_SHOP_CATEGORY = 'Other';
+
+  // Server errors that mean "the database doesn't have this shape yet" (a
+  // migration hasn't been run) rather than "the network blipped". An op that
+  // fails this way is parked in the queue — retried on every flush — without
+  // blocking the ops behind it. See flush().
+  var SCHEMA_ERROR_CODES = {
+    '42703': 1,    // undefined column
+    '42P01': 1,    // undefined table
+    '23514': 1,    // check constraint (e.g. kind = 'snack' before the migration)
+    '23503': 1,    // foreign key
+    '23502': 1,    // not null
+    'PGRST204': 1, // column not in PostgREST schema cache
+    'PGRST205': 1  // table not in PostgREST schema cache
+  };
+
   // Cheap deterministic "which hue is this category" hash — purely a visual
-  // scanning aid (a colored dot per group), never persisted or synced.
-  var CATEGORY_PALETTE = ['#e7552d', '#2e7d43', '#1f7a8c', '#8e44ad', '#c0392b', '#a9741a', '#2166a8', '#c2185b'];
+  // scanning aid, never persisted or synced.
+  var CATEGORY_PALETTE = ['#ff6b3d', '#23945a', '#1f7a8c', '#8e44ad', '#e0453a', '#c98a0b', '#2166a8', '#c2185b'];
+
+  // First keyword match wins. Purely decorative.
+  var CATEGORY_EMOJI = [
+    [/dairy|milk|chees|yog|curd|paneer|butter|cream/, '🥛'],
+    [/egg/, '🥚'],
+    [/frozen|freez/, '❄️'],
+    [/fridge|chill/, '🧊'],
+    [/spice|masala|season|herb/, '🌶️'],
+    [/veg|produce|green|salad/, '🥬'],
+    [/fruit/, '🍎'],
+    [/meat|chicken|fish|seafood|protein|mutton|beef|pork/, '🍗'],
+    [/bread|bak/, '🍞'],
+    [/rice|grain|pasta|noodle|cereal|flour|atta|dal|lentil|pulse|bean/, '🌾'],
+    [/sauce|condiment|ketchup|oil|vinegar|dressing|paste/, '🫙'],
+    [/can|tin|pantry|dry|staple/, '🥫'],
+    [/drink|beverage|juice|tea|coffee/, '☕'],
+    [/snack|chip|biscuit|cookie/, '🍿'],
+    [/sweet|dessert|sugar|choc/, '🍫'],
+    [/nut|seed/, '🥜'],
+    [/clean|household|home|toilet/, '🧽']
+  ];
+  var ITEM_EMOJI = {
+    equipment: [
+      [/pan|skillet|wok|tawa|griddle/, '🍳'],
+      [/pot|cooker|dutch|saucepan|kadai|kadhai/, '🍲'],
+      [/knife|cleaver|peeler/, '🔪'],
+      [/bowl/, '🥣'],
+      [/spoon|ladle|spatula|whisk|tong/, '🥄'],
+      [/fork/, '🍴'],
+      [/plate|dish/, '🍽️'],
+      [/cup|mug|glass/, '☕'],
+      [/kettle/, '🫖'],
+      [/blender|mixer|grinder|processor/, '🌀'],
+      [/oven|microwave|fryer|toaster|stove/, '♨️'],
+      [/board/, '🪵'],
+      [/jar|container|box|tupperware/, '🫙'],
+      [/scale/, '⚖️'],
+      [/tray|sheet|tin|mould|mold/, '🧁']
+    ],
+    snack: [
+      [/chip|crisp|lays|pringle/, '🥔'],
+      [/biscuit|cookie|oreo/, '🍪'],
+      [/choc|bar|kitkat|snicker/, '🍫'],
+      [/nut|almond|cashew|peanut|trail/, '🥜'],
+      [/popcorn/, '🍿'],
+      [/candy|sweet|gum|gummy/, '🍬'],
+      [/soda|coke|juice|drink|cola|pepsi/, '🥤'],
+      [/cake|muffin|brownie/, '🧁'],
+      [/noodle|ramen|maggi|cup/, '🍜'],
+      [/ice ?cream/, '🍨'],
+      [/cracker|pretzel|namkeen|bhujia/, '🥨'],
+      [/fruit|raisin|date/, '🍇']
+    ]
+  };
 
   // ----------------------------------------------------------------- state
   var state = {
     items: [],
-    recipes: [],
-    recipeItems: [],
     shoppingCategories: [],
     shoppingItems: [],
     queue: [],
     ui: {
-      tab: 'inventory', collapsed: {}, collapsedRecipes: {}, collapsedShopping: {},
-      cookFilter: 'all', cookCategories: [], inventoryCategories: []
+      tab: 'inventory', invSection: 'ingredients', invFilter: 'all',
+      collapsed: {}, collapsedShopping: {}, inventoryCategories: []
     },
     session: null,
     online: (typeof navigator !== 'undefined' && 'onLine' in navigator) ? navigator.onLine : true,
-    syncing: false
+    syncing: false,
+    blocked: 0          // queued ops parked on a schema error (see flush)
   };
   var client = null;
-  var editingId = null;       // inventory edit sheet
-  var openRecipeId = null;    // recipe currently open in edit or cook mode
-  var openRecipeMode = null;  // 'edit' | 'cook'
-  var openMenuId = null;      // recipe card whose kebab menu is open
-  var openSectionMenuId = null; // method-section kebab menu open, by section id
-  var openStepMenu = null;      // { sectionId, idx } of an open method-step kebab menu
-  var renamingSectionId = null; // method-section currently inline-renameable, by section id
-  var editingStep = null;       // { sectionId, idx } of a method-step currently inline-editable
-  var lastFocusAddStep = null;  // section id whose "add a step" input should regain focus post-render
-  var cookSlideIndex = 0;       // which method-section slide Cooking mode's carousel is on
-  var justCreatedRecipeId = null; // freshly-created recipe: auto-focus its name field once
-  var openInvQuickAdd = null;    // inventory category name whose inline add-row is open
-  var openCookQuickAdd = null;   // cook category name whose inline add-row is open
-  var openShopQuickAdd = null;   // shopping category id whose inline add-row is open
-  var openShopCatMenuId = null;  // shopping category kebab menu open, by category id
-  var renamingShopCatId = null;  // shopping category currently inline-renameable, by id
+  var sheet = null;             // open bottom sheet: { mode, id?, section?, state?, count? }
+  var invSearch = '';           // inventory search text (transient, not persisted)
+  var openInvQuickAdd = null;   // ingredient category whose inline add-row is open
+  var openInvCatMenu = null;    // ingredient category whose ⋯ menu is open
+  var renamingInvCat = null;    // ingredient category currently inline-renameable
+  var openShopQuickAdd = null;  // shopping category id whose inline add-row is open
+  var openShopCatMenuId = null; // shopping category ⋯ menu open, by id
+  var renamingShopCatId = null; // shopping category currently inline-renameable, by id
   var toastTimer = null;
   var flushGen = 0;          // bumped when the queue is wholesale replaced; aborts any in-flight flush
 
@@ -690,8 +631,8 @@
   function merge(a, b) { var c = {}, k; for (k in a) c[k] = a[k]; for (k in b) c[k] = b[k]; return c; }
   function findById(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function byId(id) { return findById(state.items, id); }
-  function recipeById(id) { return findById(state.recipes, id); }
-  function recipeItemById(id) { return findById(state.recipeItems, id); }
+  function lc(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
+  function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
 
   function readLS(key, fallback) {
     try {
@@ -702,8 +643,6 @@
   function persist(which) {
     try {
       if (!which || which === 'items') localStorage.setItem(LS.items, JSON.stringify(state.items));
-      if (!which || which === 'recipes') localStorage.setItem(LS.recipes, JSON.stringify(state.recipes));
-      if (!which || which === 'recipeItems') localStorage.setItem(LS.recipeItems, JSON.stringify(state.recipeItems));
       if (!which || which === 'shoppingCategories') localStorage.setItem(LS.shoppingCategories, JSON.stringify(state.shoppingCategories));
       if (!which || which === 'shoppingItems') localStorage.setItem(LS.shoppingItems, JSON.stringify(state.shoppingItems));
       if (!which || which === 'queue') localStorage.setItem(LS.queue, JSON.stringify(state.queue));
@@ -712,21 +651,19 @@
   }
   function loadFromCache() {
     state.items = readLS(LS.items, []) || [];
-    state.recipes = readLS(LS.recipes, []) || [];
-    state.recipeItems = readLS(LS.recipeItems, []) || [];
     state.shoppingCategories = readLS(LS.shoppingCategories, []) || [];
     state.shoppingItems = readLS(LS.shoppingItems, []) || [];
     state.queue = readLS(LS.queue, []) || [];
     var ui = readLS(LS.ui, {}) || {};
     state.ui = {
-      tab: (ui.tab === 'cook' || ui.tab === 'shopping') ? ui.tab : 'inventory',
+      tab: ui.tab === 'shopping' ? 'shopping' : 'inventory', // old 'cook' lands on inventory
+      invSection: SECTIONS.indexOf(ui.invSection) !== -1 ? ui.invSection : 'ingredients',
+      invFilter: (ui.invFilter === 'low' || ui.invFilter === 'out') ? ui.invFilter : 'all',
       collapsed: ui.collapsed || {},
-      collapsedRecipes: ui.collapsedRecipes || {},
       collapsedShopping: ui.collapsedShopping || {},
-      cookFilter: ui.cookFilter || 'all',
-      cookCategories: ui.cookCategories || [],
       inventoryCategories: ui.inventoryCategories || []
     };
+    try { LEGACY_LS.forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
   }
 
   // --------------------------------------------------------- pure: domain
@@ -734,18 +671,37 @@
     var i = STATE_CYCLE.indexOf(s);
     return STATE_CYCLE[(i + 1) % STATE_CYCLE.length];
   }
+  function isCounted(kind) { return kind === 'snack' || kind === 'equipment'; }
 
-  // Cheap deterministic string hash -> one of CATEGORY_PALETTE. Purely a
-  // visual scanning aid (colored dot per group); never persisted or synced.
+  // How many of a snack / piece of equipment you have. Rows written before
+  // the qty column existed (or fetched before its migration ran) only have
+  // the old own/don't-own `state` — read that as 1 / 0 so nothing shows up
+  // blank or wrong.
+  function countOf(it) {
+    if (!it) return 0;
+    if (typeof it.qty === 'number' && isFinite(it.qty)) return Math.max(0, Math.floor(it.qty));
+    return it.state === 'out' ? 0 : 1;
+  }
+
   function catColorFor(name) {
     var s = String(name || ''), h = 0;
     for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
     return CATEGORY_PALETTE[Math.abs(h) % CATEGORY_PALETTE.length];
   }
+  function emojiFrom(table, name, fallback) {
+    var s = lc(name);
+    for (var i = 0; i < table.length; i++) if (table[i][0].test(s)) return table[i][1];
+    return fallback;
+  }
+  function catEmojiFor(name) { return emojiFrom(CATEGORY_EMOJI, name, '🧺'); }
+  function itemEmojiFor(it) {
+    return it.kind === 'snack' ? emojiFrom(ITEM_EMOJI.snack, it.name, '🍿')
+      : emojiFrom(ITEM_EMOJI.equipment, it.name, '🥄');
+  }
 
-  // `placeholderNames` are empty categories the user created ahead of adding
-  // anything to them (see addInventoryCategory) — they render as empty groups
-  // so the "+" quick-add is reachable before any item exists.
+  // `placeholderNames` are empty categories created ahead of adding anything
+  // to them (see addInventoryCategory) — they render as empty groups so the
+  // "+" quick-add is reachable before any item exists.
   function groupIngredients(items, placeholderNames) {
     var groups = {};
     (placeholderNames || []).forEach(function (name) { groups[name] = groups[name] || []; });
@@ -768,120 +724,43 @@
     });
   }
 
-  // Recipe ingredients are free text (see addRecipeItem) — matching one to a
-  // live inventory state is a name lookup, not a stored link, so it stays
-  // correct even if the item is added to inventory after the recipe is
-  // written, renamed, etc.
-  function findInventoryMatch(items, name) {
-    if (!name) return null;
-    var lname = String(name).trim().toLowerCase();
-    for (var i = 0; i < (items || []).length; i++) {
-      if (items[i].kind === 'ingredient' && items[i].name.toLowerCase() === lname) return items[i];
-    }
-    return null;
-  }
-
-  // A recipe line's display name: normally its own `name`, but rows written
-  // before that column existed (or fetched before the migration backfilled
-  // it) only have the old item_id link — fall back to the linked item's name
-  // so those lines don't render blank / look deleted.
-  function recipeItemName(ri, items) {
-    if (ri.name) return ri.name;
-    var it = findById(items || [], ri.item_id);
-    return it ? it.name : '';
-  }
-
-  // "What can I make": a recipe is makeable when none of its tracked,
-  // non-staple ingredients is 'out'. 'low' still counts as makeable
-  // (flagged). Ingredients with no matching inventory item are assumed
-  // present, same as staples — writing a recipe never requires stocking
-  // every ingredient in inventory first.
-  function recipeStatus(recipe, recipeItems, items) {
-    var lines = (recipeItems || []).filter(function (ri) { return ri.recipe_id === recipe.id; });
-    var missing = [], low = [];
-    lines.forEach(function (ri) {
-      var it = findInventoryMatch(items, recipeItemName(ri, items));
-      if (!it || it.is_staple) return;
-      if (it.state === 'out') missing.push(it.name);
-      else if (it.state === 'low') low.push(it.name);
+  // Snacks / equipment: flat list, ones you have first, then alphabetical.
+  function countedList(items, kind) {
+    return (items || []).filter(function (it) { return it.kind === kind; }).sort(function (a, b) {
+      var za = countOf(a) === 0 ? 1 : 0, zb = countOf(b) === 0 ? 1 : 0;
+      return (za - zb) || a.name.localeCompare(b.name);
     });
-    var cmp = function (a, b) { return a.localeCompare(b); };
-    return {
-      makeable: missing.length === 0,
-      missing: missing.sort(cmp),
-      low: low.sort(cmp),
-      total: lines.length
-    };
   }
 
-  // Method is stored as one JSON-encoded column (kitchen_recipes.instructions,
-  // still just text — no schema change) holding an ordered list of named
-  // sections, each with its own ordered steps. e.g. for butter chicken:
-  //   [{name:'Marination', steps:[...]}, {name:'Gravy', steps:[...]}]
-  // Recipes saved by the older flat-textarea/step-list UI had instructions as
-  // plain newline-separated text; that's parsed here as one unnamed section
-  // so nothing existing needs a migration.
-  function sectionsOf(recipe) {
-    var raw = recipe && recipe.instructions;
-    if (!raw) return [];
-    try {
-      var parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return parsed.map(function (s) {
-          return { id: s.id || uuid(), name: s.name || null, steps: Array.isArray(s.steps) ? s.steps.slice() : [] };
-        });
-      }
-    } catch (e) { /* not JSON -> legacy flat text, fall through */ }
-    var legacy = String(raw).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
-    return legacy.length ? [{ id: uuid(), name: null, steps: legacy }] : [];
-  }
-  function sectionsToText(sections) { return sections.length ? JSON.stringify(sections) : null; }
-  function sectionByIdIn(sections, id) {
-    for (var i = 0; i < sections.length; i++) if (sections[i].id === id) return sections[i];
-    return null;
-  }
-  // Whether a section's own header/name should be shown: a single unnamed
-  // section (the common "just a flat list of steps" case) stays chrome-free.
-  function sectionNeedsHeader(section, allSections) {
-    return allSections.length > 1 || !!section.name;
+  function inventoryStats(items) {
+    var s = { ingredients: 0, snacks: 0, equipment: 0, low: 0, out: 0 };
+    (items || []).forEach(function (it) {
+      if (it.kind === 'ingredient') {
+        s.ingredients++;
+        if (it.state === 'low') s.low++;
+        else if (it.state === 'out') s.out++;
+      } else if (it.kind === 'snack') s.snacks++;
+      else if (it.kind === 'equipment') s.equipment++;
+    });
+    return s;
   }
 
-  function cookList(filter) {
-    var rows = state.recipes.map(function (r) {
-      return { id: r.id, name: r.name, category: r.category || null,
-               status: recipeStatus(r, state.recipeItems, state.items) };
+  function ingredientCategoryNames() {
+    var seen = {}, out = [];
+    state.items.forEach(function (i) {
+      if (i.kind !== 'ingredient' || !i.category) return;
+      var k = lc(i.category);
+      if (!seen[k]) { seen[k] = true; out.push(i.category); }
     });
-    if (filter === 'makeable') rows = rows.filter(function (x) { return x.status.makeable; });
-    rows.sort(function (a, b) {
-      if (a.status.makeable !== b.status.makeable) return a.status.makeable ? -1 : 1;
-      if (a.status.missing.length !== b.status.missing.length) return a.status.missing.length - b.status.missing.length;
-      return a.name.localeCompare(b.name);
+    state.ui.inventoryCategories.forEach(function (c) {
+      if (!seen[lc(c)]) { seen[lc(c)] = true; out.push(c); }
     });
-    return rows;
-  }
-
-  // Groups cookList() rows by category (Uncategorized last), preserving the
-  // makeable-first ordering cookList already applied within each group.
-  // `placeholderNames` are empty categories the user created ahead of adding
-  // a recipe to them (see addCookCategory) — same idea as groupIngredients.
-  function groupRecipeRows(rows, placeholderNames) {
-    var groups = {};
-    (placeholderNames || []).forEach(function (name) { groups[name] = groups[name] || []; });
-    (rows || []).forEach(function (r) {
-      var key = (r.category && String(r.category).trim()) || 'Uncategorized';
-      (groups[key] || (groups[key] = [])).push(r);
-    });
-    return Object.keys(groups).sort(function (a, b) {
-      if (a === 'Uncategorized') return 1;
-      if (b === 'Uncategorized') return -1;
-      return a.localeCompare(b);
-    }).map(function (name) { return { name: name, rows: groups[name] }; });
+    return out.sort(function (a, b) { return a.localeCompare(b); });
   }
 
   // Shopping categories are their own rows (not derived from item.category),
   // so a category can exist — and show its "+" — before it holds anything.
-  // Within a category, checked items sink to the bottom (done, out of the way)
-  // ahead of the next unchecked one.
+  // Within a category, checked items sink to the bottom.
   function groupShoppingItems(categories, items) {
     var byCat = {};
     (categories || []).forEach(function (c) { byCat[c.id] = []; });
@@ -896,11 +775,23 @@
           ((a.sort_order || 0) - (b.sort_order || 0)) || a.name.localeCompare(b.name);
       });
     }
-    var groups = (categories || []).slice().sort(function (a, b) {
-      return ((a.sort_order || 0) - (b.sort_order || 0)) || a.name.localeCompare(b.name);
-    }).map(function (c) { return { id: c.id, name: c.name, items: bySortThenName(byCat[c.id]) }; });
+    var groups = sortedShoppingCategories(categories)
+      .map(function (c) { return { id: c.id, name: c.name, items: bySortThenName(byCat[c.id]) }; });
     if (orphans.length) groups.push({ id: null, name: 'Uncategorized', items: bySortThenName(orphans) });
     return groups;
+  }
+  function sortedShoppingCategories(categories) {
+    return (categories || []).slice().sort(function (a, b) {
+      return ((a.sort_order || 0) - (b.sort_order || 0)) || a.name.localeCompare(b.name);
+    });
+  }
+
+  // Lower-cased names of everything still to buy — used to flag inventory
+  // rows that are already on the list.
+  function toBuyNames() {
+    var s = {};
+    state.shoppingItems.forEach(function (it) { if (!it.checked) s[lc(it.name)] = true; });
+    return s;
   }
 
   // Apply queued writes on top of a base list for one table. Idempotent:
@@ -933,7 +824,7 @@
   // Ops are matched on (table, id).
   function coalesce(queue, op) {
     var q = (queue || []).slice();
-    var i, same;
+    var i;
     var sameRow = function (o) { return o.table === op.table && o.kind === 'insert' && o.row.id === targetId(op); };
     var sameKey = function (o, kind) { return o.table === op.table && o.kind === kind && o.id === targetId(op); };
 
@@ -976,6 +867,7 @@
     return q;
   }
   function targetId(op) { return op.kind === 'insert' ? op.row.id : op.id; }
+  function rowKey(op) { return op.table + ':' + targetId(op); }
 
   // --------------------------------------------------------- write queue
   function enqueue(op) {
@@ -991,10 +883,20 @@
     flush().catch(function () {});
   }
 
+  function isSchemaError(err) {
+    return !!(err && err.code != null && SCHEMA_ERROR_CODES[String(err.code)]);
+  }
+
   // Flush the queue in order. An op is removed ONLY after its send resolves,
   // so a flush that dies partway resumes from the first un-acked op next time;
   // because every send is idempotent, re-sending an op that already landed is
   // harmless.
+  //
+  // A transient failure (network, auth) stops the flush, as before. A schema
+  // failure (see SCHEMA_ERROR_CODES — e.g. a migration not run yet) instead
+  // parks that op: it stays queued for the next flush, every later op for the
+  // SAME row is held behind it (so per-row order is kept), and ops for other
+  // rows keep flowing — one un-run migration can't freeze all syncing.
   function flush(send) {
     send = send || sendOp;
     if (state.syncing) return Promise.resolve({ done: 0, remaining: state.queue.length });
@@ -1002,22 +904,37 @@
     renderSync();
     var done = 0;
     var myGen = flushGen;
+    var parked = {};
+    function nextOp() {
+      for (var i = 0; i < state.queue.length; i++) if (!parked[rowKey(state.queue[i])]) return state.queue[i];
+      return null;
+    }
     function step() {
       if (myGen !== flushGen) return Promise.resolve();
-      if (!state.queue.length) return Promise.resolve();
-      var op = state.queue[0];
+      var op = nextOp();
+      if (!op) return Promise.resolve();
       return Promise.resolve(send(op)).then(function () {
         if (myGen !== flushGen) return;
-        if (state.queue[0] === op) { state.queue.shift(); persist('queue'); }
+        var at = state.queue.indexOf(op);
+        if (at !== -1) { state.queue.splice(at, 1); persist('queue'); }
         done++;
         renderSync();
         return step();
+      }, function (err) {
+        if (myGen !== flushGen || !isSchemaError(err)) throw err;
+        parked[rowKey(op)] = true;
+        return step();
       });
     }
+    function countParked() {
+      return state.queue.filter(function (o) { return parked[rowKey(o)]; }).length;
+    }
     return step().then(function () {
+      state.blocked = countParked();
       state.syncing = false; renderSync();
-      return { done: done, remaining: 0 };
+      return { done: done, remaining: state.queue.length, blocked: state.blocked };
     }, function (err) {
+      state.blocked = countParked();
       state.syncing = false; renderSync();
       return { done: done, remaining: state.queue.length, error: err };
     });
@@ -1053,21 +970,15 @@
     // flush() manages state.syncing itself; don't set it here or flush() no-ops.
     return flush().then(function () {
       state.syncing = true; renderSync();
-      return Promise.all([
-        client.from(T_ITEMS).select('*'),
-        client.from(T_RECIPES).select('*'),
-        client.from(T_RECIPE_ITEMS).select('*')
-      ]);
+      return client.from(T_ITEMS).select('*');
     }).then(function (res) {
-      res.forEach(function (r) { if (!r || r.error) throw (r && r.error) || new Error('fetch failed'); });
-      state.items = applyOps(res[0].data || [], queueFor(T_ITEMS), T_ITEMS);
-      state.recipes = applyOps(res[1].data || [], queueFor(T_RECIPES), T_RECIPES);
-      state.recipeItems = applyOps(res[2].data || [], queueFor(T_RECIPE_ITEMS), T_RECIPE_ITEMS);
+      if (!res || res.error) throw (res && res.error) || new Error('fetch failed');
+      state.items = applyOps(res.data || [], queueFor(T_ITEMS), T_ITEMS);
       // Shopping lives in its own migration — fetched best-effort so a device
-      // that hasn't run it yet still syncs everything above just fine.
+      // that hasn't run it yet still syncs inventory just fine.
       return Promise.all([
-        client.from(T_SHOP_CATS).select('*').catch(function (e) { return { error: e }; }),
-        client.from(T_SHOP_ITEMS).select('*').catch(function (e) { return { error: e }; })
+        Promise.resolve(client.from(T_SHOP_CATS).select('*')).catch(function (e) { return { error: e }; }),
+        Promise.resolve(client.from(T_SHOP_ITEMS).select('*')).catch(function (e) { return { error: e }; })
       ]);
     }).then(function (shopRes) {
       if (shopRes[0] && !shopRes[0].error) state.shoppingCategories = applyOps(shopRes[0].data || [], queueFor(T_SHOP_CATS), T_SHOP_CATS);
@@ -1084,18 +995,59 @@
   }
 
   // ------------------------------------------------------- actions: items
-  function addItem(kind, name, category) {
+  // kind: 'ingredient' | 'snack' | 'equipment'.
+  // opts.state: starting state for an ingredient (default 'have').
+  // opts.qty:   starting count for a snack / equipment (default 1).
+  // Adding a snack or piece of equipment you already have just bumps its
+  // count instead of creating a duplicate row.
+  function addItem(kind, name, category, opts) {
+    opts = opts || {};
     name = (name || '').trim();
     if (!name) return null;
+    var counted = isCounted(kind);
+    var qty = counted ? Math.max(0, Math.floor(opts.qty == null ? 1 : Number(opts.qty) || 0)) : null;
+    var dup = null;
+    state.items.forEach(function (i) { if (i.kind === kind && lc(i.name) === lc(name)) dup = i; });
+    if (dup) {
+      if (counted) {
+        setCount(dup.id, countOf(dup) + (qty || 1));
+        toast(dup.name + ' — you now have ' + countOf(dup));
+        return dup;
+      }
+      toast(dup.name + ' is already in your inventory');
+      return null;
+    }
     var row = {
-      id: uuid(), user_id: uid(), name: name, kind: kind, state: 'have',
-      category: (category && String(category).trim()) || null, is_staple: false, notes: null,
-      created_at: iso(), updated_at: iso()
+      id: uuid(), user_id: uid(), name: name, kind: kind,
+      state: counted ? (qty > 0 ? 'have' : 'out') : (STATE_CYCLE.indexOf(opts.state) !== -1 ? opts.state : 'have'),
+      category: (!counted && category && String(category).trim()) || null,
+      is_staple: false, notes: null, created_at: iso(), updated_at: iso()
     };
+    // Only counted rows carry qty — an ingredient insert never mentions the
+    // column, so it still syncs on a database that hasn't run the qty migration.
+    if (counted) row.qty = qty;
     state.items.push(row);
-    persist('items'); renderAll();
+    persist('items');
     enqueue({ table: T_ITEMS, kind: 'insert', row: cloneRow(row) });
+    if (row.state === 'out') cartFollow(row, 'have', 'out');
+    renderAll();
     return row;
+  }
+
+  // Keep the shopping list in step with inventory: running out puts the
+  // item on the list, un-running-out takes it back off (only while it's
+  // still unchecked — a ticked item is a record of what you bought).
+  // Returns a short note for the toast.
+  function cartFollow(it, from, to) {
+    if (!it || it.kind === 'equipment' || it.is_staple) return '';
+    if (to === 'out' && from !== 'out') {
+      return ensureOnList(it.name, it.kind === 'snack' ? SNACK_SHOP_CATEGORY : (it.category || DEFAULT_SHOP_CATEGORY))
+        ? ' · added to shopping list' : '';
+    }
+    if (from === 'out' && to !== 'out') {
+      return removeFromList(it.name) ? ' · off shopping list' : '';
+    }
+    return '';
   }
 
   // Snapshots the exact prior state (value + updated_at) so undo restores it
@@ -1103,32 +1055,55 @@
   function applyStateChange(id, newState, undoLabel) {
     var it = byId(id);
     if (!it || it.state === newState) return;
+    var from = it.state;
     var snap = { state: it.state, updated_at: it.updated_at };
     it.state = newState;
     it.updated_at = iso();
-    persist('items'); renderAll();
+    persist('items');
     enqueue({ table: T_ITEMS, kind: 'update', id: id, patch: { state: newState } });
-    if (undoLabel) toast(undoLabel, function () {
+    var note = cartFollow(it, from, newState);
+    renderAll();
+    if (undoLabel) toast(undoLabel + note, function () {
       var cur = byId(id);
       if (!cur) return;
+      var was = cur.state;
       cur.state = snap.state;
       cur.updated_at = snap.updated_at;
-      persist('items'); renderAll();
+      persist('items');
       enqueue({ table: T_ITEMS, kind: 'update', id: id, patch: { state: snap.state } });
+      cartFollow(cur, was, snap.state);
+      renderAll();
     });
   }
 
   function cycleState(id) {
     var it = byId(id);
     if (!it) return;
-    applyStateChange(id, nextState(it.state), it.name + ' → ' + nextState(it.state));
+    var to = nextState(it.state);
+    applyStateChange(id, to, it.name + ' → ' + STATE_LABEL[to]);
   }
 
-  function toggleEquipment(id) {
+  // Counts for snacks / equipment. `state` mirrors the count (0 = out) so
+  // older clients and the shopping hook both read it correctly.
+  function setCount(id, n) {
     var it = byId(id);
-    if (!it) return;
-    var next = it.state === 'have' ? 'out' : 'have';
-    applyStateChange(id, next, it.name + (next === 'have' ? ' — own' : " — don't own"));
+    if (!it || !isCounted(it.kind)) return;
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    var from = countOf(it);
+    if (n === from && typeof it.qty === 'number') return;
+    var fromState = it.state;
+    it.qty = n;
+    it.state = n > 0 ? 'have' : 'out';
+    it.updated_at = iso();
+    persist('items');
+    enqueue({ table: T_ITEMS, kind: 'update', id: id, patch: { qty: n, state: it.state } });
+    var note = cartFollow(it, fromState, it.state);
+    renderAll();
+    if (note) toast(it.name + note, function () { setCount(id, from); });
+  }
+  function stepCount(id, delta) {
+    var it = byId(id);
+    if (it) setCount(id, countOf(it) + delta);
   }
 
   function editItem(id, patch, undoLabel) {
@@ -1155,149 +1130,25 @@
     var idx = state.items.map(function (x) { return x.id; }).indexOf(id);
     if (idx === -1) return;
     var row = state.items.splice(idx, 1)[0];
-    // kitchen_recipe_items.item_id is ON DELETE RESTRICT — remove referencing lines first.
-    var lines = state.recipeItems.filter(function (ri) { return ri.item_id === id; });
-    if (lines.length) state.recipeItems = state.recipeItems.filter(function (ri) { return ri.item_id !== id; });
-    persist(); renderAll();
-    lines.forEach(function (ri) { enqueue({ table: T_RECIPE_ITEMS, kind: 'delete', id: ri.id }); });
+    persist('items'); renderAll();
     enqueue({ table: T_ITEMS, kind: 'delete', id: id });
-    var extra = lines.length ? ' (removed from ' + lines.length + ' recipe' + (lines.length > 1 ? 's' : '') + ')' : '';
-    toast('Deleted ' + row.name + extra, function () {
+    toast('Deleted ' + row.name, function () {
       state.items.push(row);
-      lines.forEach(function (ri) { state.recipeItems.push(ri); });
-      persist(); renderAll();
+      persist('items'); renderAll();
       enqueue({ table: T_ITEMS, kind: 'insert', row: cloneRow(row) });
-      lines.forEach(function (ri) { enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(ri) }); });
     });
   }
 
-  // ----------------------------------------------------- actions: recipes
-  function addRecipe(name, category) {
-    name = (name || '').trim();
-    if (!name) return null;
-    var r = { id: uuid(), user_id: uid(), name: name, notes: null, instructions: null,
-              servings: null, category: (category && String(category).trim()) || null,
-              created_at: iso(), updated_at: iso() };
-    state.recipes.push(r);
-    persist('recipes'); renderAll();
-    enqueue({ table: T_RECIPES, kind: 'insert', row: cloneRow(r) });
-    return r;
-  }
-
-  function editRecipe(id, patch, undoLabel) {
-    var r = recipeById(id);
-    if (!r) return;
-    var before = { updated_at: r.updated_at };
-    for (var k in patch) before[k] = r[k];
-    for (var j in patch) r[j] = patch[j];
-    r.updated_at = iso();
-    persist('recipes'); renderAll();
-    enqueue({ table: T_RECIPES, kind: 'update', id: id, patch: cloneRow(patch) });
-    if (undoLabel) toast(undoLabel, function () {
-      var cur = recipeById(id);
-      if (!cur) return;
-      for (var b in before) cur[b] = before[b];
-      persist('recipes'); renderAll();
-      var revert = {};
-      for (var p in patch) revert[p] = before[p];
-      enqueue({ table: T_RECIPES, kind: 'update', id: id, patch: revert });
-    });
-  }
-
-  function deleteRecipe(id) {
-    var idx = state.recipes.map(function (x) { return x.id; }).indexOf(id);
-    if (idx === -1) return;
-    var r = state.recipes.splice(idx, 1)[0];
-    var lines = state.recipeItems.filter(function (ri) { return ri.recipe_id === id; });
-    state.recipeItems = state.recipeItems.filter(function (ri) { return ri.recipe_id !== id; });
-    if (openRecipeId === id) closeRecipeViews();
-    persist(); renderAll();
-    lines.forEach(function (ri) { enqueue({ table: T_RECIPE_ITEMS, kind: 'delete', id: ri.id }); });
-    enqueue({ table: T_RECIPES, kind: 'delete', id: id });
-    toast('Deleted ' + r.name, function () {
-      state.recipes.push(r);
-      lines.forEach(function (ri) { state.recipeItems.push(ri); });
-      persist(); renderAll();
-      enqueue({ table: T_RECIPES, kind: 'insert', row: cloneRow(r) });
-      lines.forEach(function (ri) { enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(ri) }); });
-    });
-  }
-
-  // Add an ingredient line to a recipe. If the ingredient isn't in inventory
-  // yet it's created as 'out' (so it lands on the shopping list).
-  // Recipe ingredients are just text — writing a recipe never creates or
-  // touches an inventory row. If the name happens to match something in
-  // inventory, recipeStatus()/rendering pick that up live by name (see
-  // findInventoryMatch); nothing is stored here beyond the name itself.
-  function addRecipeItem(recipeId, itemName, displayQty) {
-    itemName = (itemName || '').trim();
-    if (!itemName || !recipeById(recipeId)) return null;
-    var lname = itemName.toLowerCase();
-    var dup = state.recipeItems.some(function (ri) {
-      return ri.recipe_id === recipeId && recipeItemName(ri, state.items).toLowerCase() === lname;
-    });
-    if (dup) return null;
-    var maxSort = state.recipeItems.reduce(function (m, ri) {
-      return ri.recipe_id === recipeId ? Math.max(m, ri.sort_order || 0) : m;
-    }, 0);
-    var line = { id: uuid(), user_id: uid(), recipe_id: recipeId, item_id: null, name: itemName,
-                 display_qty: (displayQty || '').trim() || null, sort_order: maxSort + 1, created_at: iso() };
-    state.recipeItems.push(line);
-    persist('recipeItems'); renderAll();
-    enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(line) });
-    return { line: line };
-  }
-
-  function editRecipeItem(id, patch) {
-    var line = recipeItemById(id);
-    if (!line) return;
-    for (var k in patch) line[k] = patch[k];
-    persist('recipeItems'); renderAll();
-    enqueue({ table: T_RECIPE_ITEMS, kind: 'update', id: id, patch: cloneRow(patch) });
-  }
-
-  function removeRecipeItem(id) {
-    var idx = state.recipeItems.map(function (x) { return x.id; }).indexOf(id);
-    if (idx === -1) return;
-    var line = state.recipeItems.splice(idx, 1)[0];
-    persist('recipeItems'); renderAll();
-    enqueue({ table: T_RECIPE_ITEMS, kind: 'delete', id: id });
-    var it = byId(line.item_id);
-    toast('Removed ' + (it ? it.name : 'ingredient'), function () {
-      state.recipeItems.push(line);
-      persist('recipeItems'); renderAll();
-      enqueue({ table: T_RECIPE_ITEMS, kind: 'insert', row: cloneRow(line) });
-    });
-  }
-
-  // ------------------------------------------- actions: local-only categories
-  // Cook/Inventory categories are otherwise just a free-text field on each
-  // recipe/item (see addRecipe/addItem) — a category with nothing in it yet
-  // has nowhere to live, so these placeholder names give the "+ Add category"
-  // flow somewhere to put an empty group before its first row exists. They're
-  // device-local (persisted in state.ui, not synced) and self-prune: once a
-  // real row uses the name, render call sites drop it from the placeholder
-  // list (see renderInventory/renderCook), so nothing here needs cleanup.
-  function addCookCategory(name) {
-    name = (name || '').trim();
-    if (!name) return;
-    var lname = name.toLowerCase();
-    var exists = state.ui.cookCategories.some(function (c) { return c.toLowerCase() === lname; }) ||
-      state.recipes.some(function (r) { return (r.category || '').toLowerCase() === lname; });
-    if (exists) return;
-    state.ui.cookCategories.push(name);
-    persist('ui'); renderCook();
-  }
-  function removeCookCategory(name) {
-    state.ui.cookCategories = state.ui.cookCategories.filter(function (c) { return c !== name; });
-    persist('ui'); renderCook();
-  }
+  // ---------------------------------------- actions: ingredient categories
+  // Ingredient categories are a free-text field on each item — a category
+  // with nothing in it yet has nowhere to live, so these placeholder names
+  // give "+ Add category" somewhere to put an empty group before its first
+  // item exists. Device-local (state.ui, not synced) and self-pruning: once a
+  // real item uses the name it drops out (see activePlaceholders).
   function addInventoryCategory(name) {
     name = (name || '').trim();
     if (!name) return;
-    var lname = name.toLowerCase();
-    var exists = state.ui.inventoryCategories.some(function (c) { return c.toLowerCase() === lname; }) ||
-      state.items.some(function (i) { return i.kind === 'ingredient' && (i.category || '').toLowerCase() === lname; });
+    var exists = ingredientCategoryNames().some(function (c) { return lc(c) === lc(name); });
     if (exists) return;
     state.ui.inventoryCategories.push(name);
     persist('ui'); renderInventory();
@@ -1307,18 +1158,64 @@
     persist('ui'); renderInventory();
   }
 
+  // Move every ingredient in category `oldName` to `newName` (rename), or to
+  // no category when newName is null (delete the category, keep the items).
+  // One undo restores every row exactly.
+  function recategorize(oldName, newName) {
+    newName = newName == null ? null : (String(newName).trim() || null);
+    var isUncat = oldName === 'Uncategorized';
+    var rows = state.items.filter(function (i) {
+      return i.kind === 'ingredient' && (isUncat ? !i.category : lc(i.category) === lc(oldName));
+    });
+    var placeholderIdx = state.ui.inventoryCategories.indexOf(oldName);
+    if (newName && lc(newName) === lc(oldName) && newName === oldName) return;
+    var snaps = rows.map(function (i) { return { id: i.id, category: i.category, updated_at: i.updated_at }; });
+    rows.forEach(function (i) {
+      i.category = newName;
+      i.updated_at = iso();
+      enqueue({ table: T_ITEMS, kind: 'update', id: i.id, patch: { category: newName } });
+    });
+    if (placeholderIdx !== -1) {
+      if (newName) state.ui.inventoryCategories[placeholderIdx] = newName;
+      else state.ui.inventoryCategories.splice(placeholderIdx, 1);
+    }
+    if (newName && state.ui.collapsed[oldName]) { state.ui.collapsed[newName] = true; delete state.ui.collapsed[oldName]; }
+    persist(); renderAll();
+    if (!rows.length) return;
+    toast(newName ? 'Renamed to ' + newName : 'Removed ' + oldName + ' — ' + plural(rows.length, 'item') + ' now uncategorized', function () {
+      snaps.forEach(function (s) {
+        var cur = byId(s.id);
+        if (!cur) return;
+        cur.category = s.category;
+        cur.updated_at = s.updated_at;
+        enqueue({ table: T_ITEMS, kind: 'update', id: s.id, patch: { category: s.category } });
+      });
+      if (placeholderIdx !== -1 && state.ui.inventoryCategories.indexOf(oldName) === -1) {
+        if (newName) state.ui.inventoryCategories = state.ui.inventoryCategories.filter(function (c) { return c !== newName; });
+        state.ui.inventoryCategories.push(oldName);
+      }
+      persist(); renderAll();
+    });
+  }
+
   // ------------------------------------------------------- actions: shopping
-  // A separate, deliberately unlinked list: adding a recipe ingredient or an
-  // inventory item never touches this, and adding here never touches them.
   function addShoppingCategory(name) {
     name = (name || '').trim();
     if (!name) return null;
+    var existing = shoppingCategoryNamed(name);
+    if (existing) return existing;
     var maxSort = state.shoppingCategories.reduce(function (m, c) { return Math.max(m, c.sort_order || 0); }, 0);
     var row = { id: uuid(), user_id: uid(), name: name, sort_order: maxSort + 1, created_at: iso() };
     state.shoppingCategories.push(row);
     persist('shoppingCategories'); renderAll();
     enqueue({ table: T_SHOP_CATS, kind: 'insert', row: cloneRow(row) });
     return row;
+  }
+  function shoppingCategoryNamed(name) {
+    for (var i = 0; i < state.shoppingCategories.length; i++) {
+      if (lc(state.shoppingCategories[i].name) === lc(name)) return state.shoppingCategories[i];
+    }
+    return null;
   }
   function renameShoppingCategory(id, name) {
     var c = findById(state.shoppingCategories, id);
@@ -1337,7 +1234,7 @@
     persist(); renderAll();
     lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: it.id }); });
     enqueue({ table: T_SHOP_CATS, kind: 'delete', id: id });
-    var extra = lines.length ? (' and ' + lines.length + ' item' + (lines.length > 1 ? 's' : '')) : '';
+    var extra = lines.length ? (' and ' + plural(lines.length, 'item')) : '';
     toast('Deleted ' + cat.name + extra, function () {
       state.shoppingCategories.push(cat);
       lines.forEach(function (it) { state.shoppingItems.push(it); });
@@ -1361,13 +1258,93 @@
     enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(row) });
     return row;
   }
-  function toggleShoppingItem(id) {
-    var it = findById(state.shoppingItems, id);
-    if (!it) return;
-    it.checked = !it.checked;
-    persist('shoppingItems'); renderAll();
-    enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: id, patch: { checked: it.checked } });
+
+  // Put `name` on the list under category `catName` (created if needed).
+  // No-op if it's already there unchecked; a checked copy is simply
+  // un-ticked rather than duplicated. Returns true if the list changed.
+  function ensureOnList(name, catName) {
+    var matches = state.shoppingItems.filter(function (si) { return lc(si.name) === lc(name); });
+    if (matches.some(function (si) { return !si.checked; })) return false;
+    if (matches.length) {
+      var m = matches[0];
+      m.checked = false;
+      persist('shoppingItems');
+      enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: m.id, patch: { checked: false } });
+      return true;
+    }
+    var cat = addShoppingCategory(catName || DEFAULT_SHOP_CATEGORY);
+    return !!(cat && addShoppingItem(cat.id, name, ''));
   }
+  // Take every still-unchecked `name` off the list. Returns true if any went.
+  function removeFromList(name) {
+    var gone = state.shoppingItems.filter(function (si) { return !si.checked && lc(si.name) === lc(name); });
+    if (!gone.length) return false;
+    state.shoppingItems = state.shoppingItems.filter(function (si) { return gone.indexOf(si) === -1; });
+    persist('shoppingItems');
+    gone.forEach(function (si) { enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: si.id }); });
+    return true;
+  }
+  function addToListFromInventory(id) {
+    var it = byId(id);
+    if (!it) return;
+    var cat = it.kind === 'snack' ? SNACK_SHOP_CATEGORY : it.kind === 'equipment' ? DEFAULT_SHOP_CATEGORY : (it.category || DEFAULT_SHOP_CATEGORY);
+    var added = ensureOnList(it.name, cat);
+    renderAll();
+    toast(added ? it.name + ' added to shopping list' : it.name + ' is already on your list');
+  }
+
+  // Ticking an item off the list = you bought it: if it matches an ingredient
+  // that's low/out, that goes back to "In stock"; a snack at 0 goes to 1.
+  // One undo reverts both the tick and the restock.
+  function toggleShoppingItem(id) {
+    var si = findById(state.shoppingItems, id);
+    if (!si) return;
+    si.checked = !si.checked;
+    persist('shoppingItems');
+    enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: id, patch: { checked: si.checked } });
+    var restock = si.checked ? restockFromList(si.name) : null;
+    renderAll();
+    if (restock) {
+      toast('Got ' + si.name + ' — back in stock', function () {
+        var cur = findById(state.shoppingItems, id);
+        if (cur) {
+          cur.checked = false;
+          persist('shoppingItems');
+          enqueue({ table: T_SHOP_ITEMS, kind: 'update', id: id, patch: { checked: false } });
+        }
+        var it = byId(restock.id);
+        if (it) {
+          for (var k in restock.before) it[k] = restock.before[k];
+          persist('items');
+          enqueue({ table: T_ITEMS, kind: 'update', id: it.id, patch: restock.patch });
+        }
+        renderAll();
+      });
+    }
+  }
+  function restockFromList(name) {
+    var it = null;
+    state.items.forEach(function (i) {
+      if (it || lc(i.name) !== lc(name)) return;
+      if (i.kind === 'ingredient' && i.state !== 'have') it = i;
+      else if (i.kind === 'snack' && countOf(i) === 0) it = i;
+    });
+    if (!it) return null;
+    var before = { state: it.state, updated_at: it.updated_at };
+    var patch = { state: 'have' };
+    var revert = { state: it.state };
+    if (it.kind === 'snack') {
+      before.qty = it.qty;
+      patch.qty = 1;
+      revert.qty = typeof it.qty === 'number' ? it.qty : 0;
+    }
+    for (var k in patch) it[k] = patch[k];
+    it.updated_at = iso();
+    persist('items');
+    enqueue({ table: T_ITEMS, kind: 'update', id: it.id, patch: patch });
+    return { id: it.id, before: before, patch: revert };
+  }
+
   function editShoppingItem(id, patch) {
     var it = findById(state.shoppingItems, id);
     if (!it) return;
@@ -1390,126 +1367,14 @@
   function clearCheckedShopping() {
     var lines = state.shoppingItems.filter(function (it) { return it.checked; });
     if (!lines.length) return;
-    var ids = {};
-    lines.forEach(function (it) { ids[it.id] = true; });
-    state.shoppingItems = state.shoppingItems.filter(function (it) { return !ids[it.id]; });
+    state.shoppingItems = state.shoppingItems.filter(function (it) { return !it.checked; });
     persist('shoppingItems'); renderAll();
     lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'delete', id: it.id }); });
-    toast('Cleared ' + lines.length + ' checked item' + (lines.length > 1 ? 's' : ''), function () {
+    toast('Cleared ' + plural(lines.length, 'checked item'), function () {
       lines.forEach(function (it) { state.shoppingItems.push(it); });
       persist('shoppingItems'); renderAll();
       lines.forEach(function (it) { enqueue({ table: T_SHOP_ITEMS, kind: 'insert', row: cloneRow(it) }); });
     });
-  }
-
-  // ------------------------------------------------------ actions: method
-  // Method sections live in one text column (JSON-encoded); each action
-  // rewrites it in full and goes through editRecipe so it's optimistic,
-  // queued and undoable.
-  function addMethodSection(recipeId, name) {
-    var r = recipeById(recipeId);
-    name = (name || '').trim();
-    if (!r || !name) return null;
-    var sections = sectionsOf(r);
-    var section = { id: uuid(), name: name, steps: [] };
-    sections.push(section);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) });
-    return section;
-  }
-
-  function renameMethodSection(recipeId, sectionId, name) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    var sections = sectionsOf(r);
-    var s = sectionByIdIn(sections, sectionId);
-    if (!s) return;
-    var newName = (name || '').trim() || null;
-    if (newName === s.name) return;
-    s.name = newName;
-    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Section renamed');
-  }
-
-  function removeMethodSection(recipeId, sectionId) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    var sections = sectionsOf(r);
-    var idx = -1;
-    for (var i = 0; i < sections.length; i++) if (sections[i].id === sectionId) { idx = i; break; }
-    if (idx === -1) return;
-    sections.splice(idx, 1);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Section removed');
-  }
-
-  function moveMethodSection(recipeId, fromIdx, toIdx) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    var sections = sectionsOf(r);
-    if (fromIdx < 0 || fromIdx >= sections.length || toIdx < 0 || toIdx >= sections.length || fromIdx === toIdx) return;
-    var moved = sections.splice(fromIdx, 1)[0];
-    sections.splice(toIdx, 0, moved);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) });
-  }
-
-  // sectionId === null targets (and lazily creates) the first/default section,
-  // so simple recipes can just start typing steps with no category set up.
-  function addMethodStep(recipeId, sectionId, text) {
-    var r = recipeById(recipeId);
-    text = (text || '').trim();
-    if (!r || !text) return;
-    var sections = sectionsOf(r);
-    var s = sectionId == null
-      ? (sections.length ? sections[0] : (sections.push({ id: uuid(), name: null, steps: [] }), sections[0]))
-      : sectionByIdIn(sections, sectionId);
-    if (!s) return;
-    s.steps.push(text);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) });
-  }
-
-  function editMethodStep(recipeId, sectionId, index, text) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    text = (text || '').trim();
-    if (!text) return;
-    var sections = sectionsOf(r);
-    var s = sectionByIdIn(sections, sectionId);
-    if (!s || index < 0 || index >= s.steps.length || s.steps[index] === text) return;
-    s.steps[index] = text;
-    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Step updated');
-  }
-
-  function removeMethodStep(recipeId, sectionId, index) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    var sections = sectionsOf(r);
-    var s = sectionByIdIn(sections, sectionId);
-    if (!s || index < 0 || index >= s.steps.length) return;
-    s.steps.splice(index, 1);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) }, 'Removed step');
-  }
-
-  function moveMethodStep(recipeId, sectionId, fromIdx, toIdx) {
-    var r = recipeById(recipeId);
-    if (!r) return;
-    var sections = sectionsOf(r);
-    var s = sectionByIdIn(sections, sectionId);
-    if (!s) return;
-    if (fromIdx < 0 || fromIdx >= s.steps.length || toIdx < 0 || toIdx >= s.steps.length || fromIdx === toIdx) return;
-    var moved = s.steps.splice(fromIdx, 1)[0];
-    s.steps.splice(toIdx, 0, moved);
-    editRecipe(recipeId, { instructions: sectionsToText(sections) });
-  }
-
-  // Pure drag math: given each row's ORIGINAL top/height and the live center
-  // of the row being dragged, how many rows now sit above it? That count is
-  // its target index. Kept separate from the DOM code so it's unit-testable.
-  function computeDropIndex(tops, heights, startIndex, draggedCenter) {
-    var count = 0;
-    for (var i = 0; i < tops.length; i++) {
-      if (i === startIndex) continue;
-      var center = tops[i] + heights[i] / 2;
-      if (center < draggedCenter) count++;
-    }
-    return count;
   }
 
   // -------------------------------------------------------------- toast
@@ -1536,80 +1401,205 @@
     });
   }
 
+  var CHEV = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  var CART_MINI = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h2.2l2.3 11h10.8l2-8H6.3"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>';
+
   function renderAll() {
     try {
+      renderChrome();
       renderInventory();
       renderShopping();
-      renderCook();
-      renderRecipeViews();
       renderSync();
-      renderTabs();
-      fillIngredientList();
-      fillRecipeCategoryList();
     } catch (e) { /* jsdom / detached DOM during tests */ }
   }
 
-  function renderTabs() {
+  function renderChrome() {
+    var tab = state.ui.tab;
+    var title = $('#page-title');
+    if (title) title.textContent = tab === 'shopping' ? 'Shopping list' : 'Inventory';
     var tabsWrap = $('nav.tabs');
     if (tabsWrap) tabsWrap.querySelectorAll('button').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-tab') === state.ui.tab);
+      b.classList.toggle('active', b.getAttribute('data-tab') === tab);
     });
-    [['inventory', '#view-inventory'], ['shopping', '#view-shopping'], ['cook', '#view-cook']]
-      .forEach(function (p) { var el = $(p[1]); if (el) el.hidden = state.ui.tab !== p[0]; });
+    var inv = $('#view-inventory'), shop = $('#view-shopping'), ctl = $('#inv-controls');
+    if (inv) inv.hidden = tab !== 'inventory';
+    if (ctl) ctl.hidden = tab !== 'inventory';
+    if (shop) shop.hidden = tab !== 'shopping';
+    var fab = $('#fab');
+    if (fab) fab.setAttribute('aria-label', tab === 'shopping' ? 'Add to shopping list' : 'Add ' + KIND_LABEL[KIND_OF[state.ui.invSection]]);
+    var av = $('#acct-btn');
+    var email = state.session && state.session.user && state.session.user.email;
+    if (av) av.textContent = email ? email.charAt(0) : '·';
+  }
+
+  // Rebuild a container's HTML without losing an input the user is typing in
+  // (a background sync can re-render at any moment). Inputs that should
+  // survive carry a stable data-keep key. Returns true if one was restored.
+  function setHtmlKeepingInput(host, html) {
+    var a = document.activeElement, keep = null;
+    if (a && host.contains(a) && a.hasAttribute && a.hasAttribute('data-keep')) {
+      keep = { key: a.getAttribute('data-keep'), value: a.value, s: a.selectionStart, e: a.selectionEnd };
+    }
+    host.innerHTML = html;
+    if (!keep) return false;
+    var el = null;
+    host.querySelectorAll('[data-keep]').forEach(function (x) { if (!el && x.getAttribute('data-keep') === keep.key) el = x; });
+    if (!el) return false;
+    el.value = keep.value;
+    el.focus();
+    try { el.setSelectionRange(keep.s, keep.e); } catch (e) { /* not a text input */ }
+    return true;
   }
 
   // A placeholder category (added via "+ Add category" but not yet used)
-  // stops being a placeholder the moment something real uses its name — no
-  // separate cleanup needed, it just naturally falls out of this filter.
+  // stops being a placeholder the moment something real uses its name.
   function activePlaceholders(names, hasReal) {
     return (names || []).filter(function (name) { return !hasReal(name); });
   }
 
   function renderInventory() {
-    var host = $('#ingredients');
-    if (host) {
-      var placeholders = activePlaceholders(state.ui.inventoryCategories, function (name) {
-        var lname = name.toLowerCase();
-        return state.items.some(function (i) { return i.kind === 'ingredient' && (i.category || '').toLowerCase() === lname; });
-      });
-      var groups = groupIngredients(state.items, placeholders);
-      var html = groups.length ? groups.map(invCategoryHtml).join('')
-        : '<div class="empty">No ingredients yet. Add one above, or start a category below.</div>';
-      host.innerHTML = html + addCategoryBarHtml('inventory');
+    var sec = state.ui.invSection;
+    var stats = inventoryStats(state.items);
+    var seg = $('#inv-seg');
+    if (seg) seg.querySelectorAll('button[data-invsec]').forEach(function (b) {
+      var k = b.getAttribute('data-invsec');
+      b.classList.toggle('active', k === sec);
+      var c = b.querySelector('.seg-count');
+      if (c) c.textContent = stats[k] ? String(stats[k]) : '';
+    });
+    var search = $('#inv-search');
+    if (search) search.placeholder = 'Search ' + sec;
+    var clr = $('#inv-search-clear');
+    if (clr) clr.hidden = !invSearch;
+
+    var filters = $('#inv-filters');
+    if (filters) {
+      filters.hidden = sec !== 'ingredients' || !stats.ingredients;
+      filters.innerHTML = sec === 'ingredients' ? filterChipsHtml(stats) : '';
     }
-    var eqHost = $('#equipment');
-    if (eqHost) {
-      var eq = state.items.filter(function (i) { return i.kind === 'equipment'; })
-        .sort(function (a, b) { return a.name.localeCompare(b.name); });
-      eqHost.innerHTML = eq.length ? eq.map(equipmentRow).join('') : '<div class="empty">No equipment yet.</div>';
+    var host = $('#inv-list');
+    if (!host) return;
+    var restored = setHtmlKeepingInput(host, sec === 'ingredients' ? ingredientsHtml() : countedHtml(KIND_OF[sec]));
+    if (!restored) {
+      var ri = host.querySelector('.cat-rename-input');
+      if (ri) { ri.focus(); ri.select(); }
     }
-    fillCategoryList();
   }
 
-  function invCategoryHtml(g) {
-    var collapsed = !!state.ui.collapsed[g.name];
+  function filterChipsHtml(stats) {
+    var f = state.ui.invFilter;
+    function chip(val, label, dot) {
+      return '<button class="chip' + (f === val ? ' active' : '') + '" data-act="inv-filter" data-val="' + val + '">' +
+        (dot ? '<span class="dot ' + dot + '"></span>' : '') + label + '</button>';
+    }
+    return chip('all', 'All') + chip('low', 'Running low · ' + stats.low, 'low') + chip('out', 'Out · ' + stats.out, 'out');
+  }
+
+  function ingredientsHtml() {
+    var q = lc(invSearch);
+    var f = state.ui.invFilter;
+    var all = state.items.filter(function (i) { return i.kind === 'ingredient'; });
+    var items = all.filter(function (i) {
+      return (!q || lc(i.name).indexOf(q) !== -1 || lc(i.category).indexOf(q) !== -1) && (f === 'all' || i.state === f);
+    });
+    var browsing = !q && f === 'all';
+    var placeholders = browsing ? activePlaceholders(state.ui.inventoryCategories, function (name) {
+      return all.some(function (i) { return lc(i.category) === lc(name); });
+    }) : [];
+    var groups = groupIngredients(items, placeholders);
+    var toBuy = toBuyNames();
+    var html;
+    if (!groups.length) {
+      html = q ? emptyHtml('🔍', 'No matches', 'Nothing called “' + esc(invSearch.trim()) + '” in your ingredients.')
+        : f !== 'all' ? emptyHtml(f === 'out' ? '🎉' : '👌', f === 'out' ? "You're not out of anything" : 'Nothing running low', 'Nice — the pantry is stocked.')
+        : emptyHtml('🥕', 'No ingredients yet', 'Tap <b style="display:inline;font:inherit;color:var(--accent)">+</b> to add one, or start with a category below.');
+    } else {
+      html = '<div class="cat-grid">' + groups.map(function (g) { return invCategoryHtml(g, !browsing, toBuy); }).join('') + '</div>';
+    }
+    return html + (browsing ? addCategoryBarHtml('inventory') : '');
+  }
+
+  function emptyHtml(icon, title, body) {
+    return '<div class="empty"><div class="big">' + icon + '</div><b>' + title + '</b>' + body + '</div>';
+  }
+
+  function invCategoryHtml(g, forceOpen, toBuy) {
+    var collapsed = !forceOpen && !!state.ui.collapsed[g.name];
+    var isUncat = g.name === 'Uncategorized';
     var quickOpen = openInvQuickAdd === g.name;
-    var canRemove = g.items.length === 0 && g.name !== 'Uncategorized';
-    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
-      '<div class="group-head-row">' +
-      '<button class="group-head" data-act="toggle-group" data-group="' + esc(g.name) + '">' +
-      '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
-      '<span class="group-count">' + g.items.length + '</span></button>' +
-      '<button class="quick-add-btn" data-act="toggle-inv-quickadd" data-cat="' + esc(g.name) + '" aria-label="Add to ' + esc(g.name) + '">+</button>' +
-      (canRemove ? '<button class="kebab" data-act="delete-inv-category" data-cat="' + esc(g.name) + '" aria-label="Remove empty category">🗑</button>' : '') +
+    var head = renamingInvCat === g.name
+      ? '<input class="cat-rename-input" data-keep="rename:' + esc(g.name) + '" type="text" value="' + esc(g.name) + '">'
+      : '<button class="cat-toggle" data-act="toggle-group" data-group="' + esc(g.name) + '">' +
+        '<span class="cat-emoji">' + catEmojiFor(g.name) + '</span>' +
+        '<span class="cat-name">' + esc(g.name) + '</span>' +
+        '<span class="cat-count">' + (g.items.length || '') + '</span>' + CHEV + '</button>';
+    return '<div class="card' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
+      '<div class="cat-head">' + head +
+      '<button class="icon-btn add" data-act="toggle-inv-quickadd" data-cat="' + esc(g.name) + '" aria-label="Add to ' + esc(g.name) + '">+</button>' +
+      '<button class="icon-btn" data-act="toggle-invcat-menu" data-cat="' + esc(g.name) + '" aria-label="Category options">⋯</button>' +
+      (openInvCatMenu === g.name ? '<div class="menu">' +
+        (isUncat ? '' : '<button data-act="rename-invcat" data-cat="' + esc(g.name) + '">Rename category</button>') +
+        (isUncat ? '' : '<button class="danger" data-act="delete-invcat" data-cat="' + esc(g.name) + '">' +
+          (g.items.length ? 'Remove category (keep items)' : 'Delete category') + '</button>') +
+        '<button data-act="collapse-all">Collapse all</button>' +
+        '<button data-act="expand-all">Expand all</button></div>' : '') +
       '</div>' +
-      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Ingredient name" enterkeyhint="done">' +
+      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" data-keep="qa:' + esc(g.name) + '" placeholder="Add to ' + esc(g.name) + '…" enterkeyhint="done">' +
         '<button class="qa-go" data-act="inv-quick-add-go" data-cat="' + esc(g.name) + '">Add</button></div>' : '') +
-      '<div class="rows">' + g.items.map(ingredientRow).join('') + '</div></div>';
+      '<div class="rows">' + (g.items.length ? g.items.map(function (it) { return ingredientRow(it, toBuy); }).join('')
+        : '<div class="empty small">Empty — tap + to add the first one.</div>') + '</div></div>';
+  }
+
+  function ingredientRow(it, toBuy) {
+    var note = it.notes ? esc(it.notes) : (it.is_staple ? 'Staple' : '');
+    var listed = toBuy[lc(it.name)];
+    return '<div class="item-row' + (it.is_staple ? ' staple' : '') + '">' +
+      '<button class="item-main" data-act="edit" data-id="' + it.id + '"><span class="item-name">' + esc(it.name) + '</span>' +
+      (note ? '<span class="item-note">' + note + '</span>' : '') + '</button>' +
+      (listed ? '<span class="on-list" title="On your shopping list">' + CART_MINI + '</span>' : '') +
+      '<button class="state-chip ' + it.state + '" data-act="cycle" data-id="' + it.id + '">' + STATE_LABEL[it.state] + '</button>' +
+      '</div>';
+  }
+
+  function countedHtml(kind) {
+    var q = lc(invSearch);
+    var all = countedList(state.items, kind);
+    var list = all.filter(function (i) { return !q || lc(i.name).indexOf(q) !== -1; });
+    if (!list.length) {
+      if (q) return emptyHtml('🔍', 'No matches', 'Nothing called “' + esc(invSearch.trim()) + '” here.');
+      return kind === 'snack'
+        ? emptyHtml('🍿', 'No snacks yet', 'Tap + to add one — chips, biscuits, chocolate… with how many you have.')
+        : emptyHtml('🍳', 'No equipment yet', 'Tap + to add your pans, pots, bowls and gadgets, with how many you own.');
+    }
+    var toBuy = toBuyNames();
+    var total = all.reduce(function (n, i) { return n + countOf(i); }, 0);
+    var outCount = all.filter(function (i) { return countOf(i) === 0; }).length;
+    return '<div class="card">' + list.map(function (it) { return countedRow(it, toBuy); }).join('') + '</div>' +
+      '<div class="footnote">' + plural(all.length, kind === 'snack' ? 'snack' : 'item') + ' · ' + total + ' in total' +
+      (outCount ? ' · ' + outCount + ' out' : '') + '</div>';
+  }
+
+  function countedRow(it, toBuy) {
+    var n = countOf(it);
+    var note = n === 0
+      ? '<span class="item-note bad">' + (it.kind === 'snack' ? (toBuy[lc(it.name)] ? 'Out · on your list' : 'Out') : 'None') + '</span>'
+      : (it.notes ? '<span class="item-note">' + esc(it.notes) + '</span>' : '');
+    return '<div class="item-row' + (n === 0 ? ' zero' : '') + '">' +
+      '<span class="thumb">' + itemEmojiFor(it) + '</span>' +
+      '<button class="item-main" data-act="edit" data-id="' + it.id + '"><span class="item-name">' + esc(it.name) + '</span>' + note + '</button>' +
+      '<div class="stepper">' +
+      '<button data-act="dec" data-id="' + it.id + '" aria-label="One less"' + (n === 0 ? ' disabled' : '') + '>−</button>' +
+      '<span class="count">' + n + '</span>' +
+      '<button data-act="inc" data-id="' + it.id + '" aria-label="One more">+</button>' +
+      '</div></div>';
   }
 
   function addCategoryBarHtml(ctx) {
-    var ph = ctx === 'cook' ? 'New category — Desserts, Drinks…'
-      : ctx === 'shop' ? 'New category — Produce, Dairy…'
-      : 'New category — Spices, Bread…';
+    var ph = ctx === 'shop' ? 'New category — Produce, Dairy…' : 'New category — Spices, Dairy…';
     return '<div class="add-category-bar">' +
-      '<input type="text" class="add-cat-input" placeholder="' + ph + '" enterkeyhint="done">' +
-      '<button class="add-cat-go" data-act="add-category" data-ctx="' + ctx + '">+ Add category</button></div>';
+      '<input type="text" class="add-cat-input" data-keep="addcat:' + ctx + '" placeholder="' + ph + '" enterkeyhint="done">' +
+      '<button data-act="add-category" data-ctx="' + ctx + '">+ Add</button></div>';
   }
 
   function focusFirst(hostSel, innerSel) {
@@ -1618,102 +1608,34 @@
     if (el) el.focus();
   }
 
-  function ingredientRow(it) {
-    var note = it.notes ? '<span class="note">' + esc(it.notes) + '</span>' : '';
-    return '<div class="row' + (it.is_staple ? ' staple' : '') + '">' +
-      '<button class="name" data-act="edit" data-id="' + it.id + '">' + esc(it.name) + note + '</button>' +
-      '<button class="state ' + it.state + '" data-act="cycle" data-id="' + it.id + '">' + it.state + '</button>' +
-      '</div>';
-  }
-
-  function equipmentRow(it) {
-    var own = it.state === 'have';
-    return '<div class="row">' +
-      '<button class="name" data-act="edit" data-id="' + it.id + '">' + esc(it.name) + '</button>' +
-      '<button class="equip ' + (own ? 'own' : 'no') + '" data-act="equip" data-id="' + it.id + '">' +
-      (own ? 'Own' : "Don't own") + '</button></div>';
-  }
-
-  function renderCook() {
-    var host = $('#recipes');
-    if (!host) return;
-    var filter = state.ui.cookFilter || 'all';
-    $('#view-cook') && $('#view-cook').querySelectorAll('.cook-filter button').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-cookfilter') === filter);
-    });
-    var rows = cookList(filter);
-    var placeholders = activePlaceholders(state.ui.cookCategories, function (name) {
-      var lname = name.toLowerCase();
-      return state.recipes.some(function (r) { return (r.category || '').toLowerCase() === lname; });
-    });
-    var groups = groupRecipeRows(rows, placeholders);
-    var html = groups.length ? groups.map(cookCategoryHtml).join('')
-      : '<div class="empty">' +
-        (filter === 'makeable' ? 'Nothing you can make right now.' : 'No recipes yet. Add one above, or start a category below.') +
-        '</div>';
-    host.innerHTML = html + (filter === 'all' ? addCategoryBarHtml('cook') : '');
-  }
-
-  function cookCategoryHtml(g) {
-    var collapsed = !!state.ui.collapsedRecipes[g.name];
-    var quickOpen = openCookQuickAdd === g.name;
-    var canRemove = g.rows.length === 0 && g.name !== 'Uncategorized';
-    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
-      '<div class="group-head-row">' +
-      '<button class="group-head" data-act="toggle-recipe-group" data-group="' + esc(g.name) + '">' +
-      '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
-      '<span class="group-count">' + g.rows.length + '</span></button>' +
-      '<button class="quick-add-btn" data-act="toggle-cook-quickadd" data-cat="' + esc(g.name) + '" aria-label="Add recipe to ' + esc(g.name) + '">+</button>' +
-      (canRemove ? '<button class="kebab" data-act="delete-cook-category" data-cat="' + esc(g.name) + '" aria-label="Remove empty category">🗑</button>' : '') +
-      '</div>' +
-      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Recipe name" enterkeyhint="done">' +
-        '<button class="qa-go" data-act="cook-quick-add-go" data-cat="' + esc(g.name) + '">Add</button></div>' : '') +
-      '<div class="rows">' + g.rows.map(recipeCard).join('') + '</div></div>';
-  }
-
-  function recipeCard(r) {
-    var st = r.status;
-    var badge = st.makeable
-      ? '<span class="tag have">' + (st.low.length ? 'Low on ' + st.low.length : 'Ready') + '</span>'
-      : '<span class="tag out">Need ' + st.missing.length + '</span>';
-    var meta = [
-      r.status.total + ' ingredient' + (r.status.total === 1 ? '' : 's'),
-      !st.makeable && st.missing.length ? 'missing: ' + st.missing.join(', ') : null
-    ].filter(Boolean).join(' · ');
-    var menuOpen = openMenuId === r.id;
-    return '<div class="recipe-card">' +
-      '<button class="rc-open" data-act="open-cook" data-id="' + r.id + '">' +
-      '<span class="rc-name">' + esc(r.name) + '</span>' + badge +
-      '<span class="rc-meta">' + esc(meta) + '</span></button>' +
-      '<button class="kebab" data-act="toggle-menu" data-id="' + r.id + '">⋮</button>' +
-      '<div class="menu"' + (menuOpen ? '' : ' hidden') + '>' +
-      '<button data-act="edit-recipe" data-id="' + r.id + '">Edit</button>' +
-      '<button class="danger" data-act="delete-recipe" data-id="' + r.id + '">Delete</button>' +
-      '</div></div>';
-  }
-
   function renderShopping() {
+    var total = state.shoppingItems.length;
+    var done = state.shoppingItems.filter(function (i) { return i.checked; }).length;
+    var left = total - done;
+    var sum = $('#shop-summary');
+    if (sum) {
+      sum.innerHTML = total ? '<div class="card shop-summary"><div class="ss-top"><div class="grow">' +
+        '<div class="ss-big">' + left + '</div><div class="ss-sub">' + (left === 1 ? 'item' : 'items') + ' to buy' +
+        (done ? ' · ' + done + ' in the cart' : '') + '</div></div>' +
+        (done ? '<button class="pill-btn" data-act="shop-clear-checked">Clear checked</button>' : '') +
+        '</div><div class="progress"><span style="width:' + Math.round(done / total * 100) + '%"></span></div></div>' : '';
+    }
     var host = $('#shopping-categories');
     if (host) {
       var groups = groupShoppingItems(state.shoppingCategories, state.shoppingItems);
-      var html = groups.length ? groups.map(shoppingCategoryHtml).join('')
-        : '<div class="empty">🛒 Your list is empty.<br>Add a category below, then tap + to add items.</div>';
-      host.innerHTML = html + addCategoryBarHtml('shop');
-    }
-    var pending = state.shoppingItems.filter(function (i) { return !i.checked; }).length;
-    var checked = state.shoppingItems.length - pending;
-    var clearBtn = $('#shop-clear-checked');
-    if (clearBtn) {
-      clearBtn.hidden = !checked;
-      clearBtn.textContent = 'Clear checked (' + checked + ')';
+      var html = groups.length ? '<div class="cat-grid">' + groups.map(shoppingCategoryHtml).join('') + '</div>'
+        : emptyHtml('🛒', 'Your list is empty', 'Anything you mark <b style="display:inline;font:inherit;color:var(--out)">Out</b> in Inventory lands here automatically. Or tap + to add something.');
+      var restored = setHtmlKeepingInput(host, html + addCategoryBarHtml('shop'));
+      if (!restored) {
+        var renameInput = host.querySelector('.cat-rename-input');
+        if (renameInput) { renameInput.focus(); renameInput.select(); }
+      }
     }
     var badge = $('#shop-badge');
     if (badge) {
-      badge.hidden = !pending;
-      badge.textContent = pending > 99 ? '99+' : String(pending);
+      badge.hidden = !left;
+      badge.textContent = left > 99 ? '99+' : String(left);
     }
-    var renameInput = host && host.querySelector('.shopcat-rename-input');
-    if (renameInput) { renameInput.focus(); renameInput.select(); }
   }
 
   function shoppingCategoryHtml(g) {
@@ -1723,300 +1645,38 @@
     var quickOpen = openShopQuickAdd === key;
     var checkedCount = g.items.filter(function (i) { return i.checked; }).length;
     var countTxt = g.items.length ? (checkedCount + '/' + g.items.length) : '';
-    var nameBody = (renamingShopCatId === g.id)
-      ? '<input class="shopcat-rename-input" type="text" value="' + esc(g.name) + '">'
-      : '<button class="group-head" data-act="toggle-shop-group" data-group="' + esc(key) + '">' +
-        '<span class="catdot"></span><span class="chev">▼</span>' + esc(g.name) +
-        (countTxt ? '<span class="group-count">' + countTxt + '</span>' : '') + '</button>';
-    return '<div class="group' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
-      '<div class="group-head-row">' + nameBody +
-      (isReal ? '<button class="quick-add-btn" data-act="toggle-shop-quickadd" data-cat="' + g.id + '" aria-label="Add item to ' + esc(g.name) + '">+</button>' : '') +
-      (isReal ? '<button class="kebab" data-act="toggle-shopcat-menu" data-cat="' + g.id + '">⋮</button>' : '') +
-      (isReal ? '<div class="menu"' + (openShopCatMenuId === g.id ? '' : ' hidden') + '>' +
+    var head = (renamingShopCatId === g.id && isReal)
+      ? '<input class="cat-rename-input" data-keep="shoprename:' + g.id + '" type="text" value="' + esc(g.name) + '">'
+      : '<button class="cat-toggle" data-act="toggle-shop-group" data-group="' + esc(key) + '">' +
+        '<span class="cat-emoji">' + catEmojiFor(g.name) + '</span>' +
+        '<span class="cat-name">' + esc(g.name) + '</span>' +
+        '<span class="cat-count">' + countTxt + '</span>' + CHEV + '</button>';
+    var outNames = {};
+    state.items.forEach(function (i) { if (countOf(i) === 0 || i.state === 'out') outNames[lc(i.name)] = true; });
+    return '<div class="card' + (collapsed ? ' collapsed' : '') + '" style="--catclr:' + catColorFor(g.name) + '">' +
+      '<div class="cat-head">' + head +
+      (isReal ? '<button class="icon-btn add" data-act="toggle-shop-quickadd" data-cat="' + g.id + '" aria-label="Add item to ' + esc(g.name) + '">+</button>' : '') +
+      (isReal ? '<button class="icon-btn" data-act="toggle-shopcat-menu" data-cat="' + g.id + '" aria-label="Category options">⋯</button>' : '') +
+      (isReal && openShopCatMenuId === g.id ? '<div class="menu">' +
         '<button data-act="rename-shopcat" data-cat="' + g.id + '">Rename</button>' +
         '<button class="danger" data-act="delete-shopcat" data-cat="' + g.id + '">Delete</button></div>' : '') +
       '</div>' +
-      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" placeholder="Item name" enterkeyhint="done">' +
-        '<input type="text" class="qa-qty" placeholder="qty">' +
+      (quickOpen ? '<div class="quick-add-row"><input type="text" class="qa-name" data-keep="shopqa:' + g.id + '" placeholder="Item" enterkeyhint="done">' +
+        '<input type="text" class="qa-qty" data-keep="shopqaqty:' + g.id + '" placeholder="Qty" enterkeyhint="done">' +
         '<button class="qa-go" data-act="shop-quick-add-go" data-cat="' + g.id + '">Add</button></div>' : '') +
-      '<div class="rows">' + (g.items.length ? g.items.map(shoppingItemRow).join('') : '<div class="empty small">Nothing here yet.</div>') + '</div></div>';
+      '<div class="rows">' + (g.items.length ? g.items.map(function (it) { return shoppingItemRow(it, outNames); }).join('')
+        : '<div class="empty small">Nothing here yet.</div>') + '</div></div>';
   }
 
-  function shoppingItemRow(it) {
-    return '<div class="row shop-row' + (it.checked ? ' checked' : '') + '">' +
-      '<button class="check" data-act="toggle-shop-item" data-id="' + it.id + '" aria-label="Got it">' + (it.checked ? '✓' : '') + '</button>' +
-      '<span class="name shop-name">' + esc(it.name) + (it.qty ? '<span class="note">' + esc(it.qty) + '</span>' : '') + '</span>' +
-      '<button class="rl-del" data-act="remove-shop-item" data-id="' + it.id + '" aria-label="Remove">×</button>' +
+  function shoppingItemRow(it, outNames) {
+    var fromInv = !it.checked && outNames[lc(it.name)];
+    var note = [it.qty ? esc(it.qty) : '', fromInv ? '<span class="src-tag">Out at home</span>' : ''].filter(Boolean).join(' ');
+    return '<div class="item-row shop-row' + (it.checked ? ' checked' : '') + '">' +
+      '<button class="check" data-act="toggle-shop-item" data-id="' + it.id + '" aria-label="' + (it.checked ? 'Uncheck' : 'Got it') + '">' + CHECK + '</button>' +
+      '<button class="item-main" data-act="edit-shop-item" data-id="' + it.id + '"><span class="item-name">' + esc(it.name) + '</span>' +
+      (note ? '<span class="item-note">' + note + '</span>' : '') + '</button>' +
+      '<button class="row-x" data-act="remove-shop-item" data-id="' + it.id + '" aria-label="Remove">×</button>' +
       '</div>';
-  }
-
-  function renderRecipeViews() {
-    var editWrap = $('#recipe-edit'), cookWrap = $('#recipe-cook');
-    var r = openRecipeId ? recipeById(openRecipeId) : null;
-    if (!r) {
-      if (editWrap) editWrap.hidden = true;
-      if (cookWrap) cookWrap.hidden = true;
-      return;
-    }
-    if (openRecipeMode === 'edit') {
-      if (cookWrap) cookWrap.hidden = true;
-      if (editWrap) editWrap.hidden = false;
-      renderRecipeEdit(r);
-    } else {
-      if (editWrap) editWrap.hidden = true;
-      if (cookWrap) cookWrap.hidden = false;
-      renderRecipeCook(r);
-    }
-  }
-
-  function renderRecipeEdit(r) {
-    var active = document.activeElement;
-    var nameEl = $('#rd-name');
-    if (nameEl && active !== nameEl) nameEl.value = r.name;
-    var catEl = $('#rd-category');
-    if (catEl && active !== catEl) catEl.value = r.category || '';
-
-    var st = recipeStatus(r, state.recipeItems, state.items);
-    var pill = $('#rd-status');
-    if (pill) {
-      pill.className = 'pill ' + (st.makeable ? 'ok' : 'bad');
-      pill.textContent = st.makeable
-        ? (st.low.length ? 'Low on ' + st.low.length : 'Can make now')
-        : 'Need ' + st.missing.length;
-    }
-
-    var lines = state.recipeItems.filter(function (ri) { return ri.recipe_id === r.id; })
-      .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0) || (a.created_at || '').localeCompare(b.created_at || ''); });
-    var linesHost = $('#rd-lines');
-    if (linesHost) {
-      linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var name = recipeItemName(ri, state.items);
-        var match = findInventoryMatch(state.items, name);
-        var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
-        var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
-        return '<div class="rd-line">' +
-          '<span class="rl-name">' + esc(name) + '</span>' +
-          '<input class="rl-qty" data-lineqty="' + ri.id + '" value="' + esc(ri.display_qty || '') + '" placeholder="qty">' +
-          '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
-          '<button class="rl-del" data-act="remove-line" data-id="' + ri.id + '">×</button>' +
-          '</div>';
-      }).join('') : '<div class="empty">No ingredients yet.</div>';
-    }
-
-    renderMethodArea(r);
-
-    if (justCreatedRecipeId === r.id && nameEl) {
-      justCreatedRecipeId = null;
-      nameEl.focus();
-      nameEl.select();
-    }
-  }
-
-  function renderMethodArea(r) {
-    var host = $('#rd-method');
-    if (!host) return;
-    var active = document.activeElement;
-    // Never blow away an input the user is mid-typing into (add-step / add
-    // section / inline rename / inline step edit) when an unrelated event
-    // (e.g. a background sync) triggers a re-render.
-    var isDraftInput = active && active.tagName === 'INPUT' && (
-      active.hasAttribute('data-add-step-for') ||
-      active.id === 'rd-add-section-name' ||
-      active.id === 'step-edit-input' ||
-      active.id === 'section-name-edit-input'
-    );
-    if (isDraftInput) return;
-
-    var sections = sectionsOf(r);
-    var html = sections.map(function (s) {
-      var showHeader = sectionNeedsHeader(s, sections);
-      var head = '';
-      if (showHeader) {
-        var nameBody = (renamingSectionId === s.id)
-          ? '<input class="section-name-edit-input" id="section-name-edit-input" type="text" value="' + esc(s.name || '') + '" placeholder="Section name">'
-          : '<span class="section-name' + (s.name ? '' : ' ph') + '" data-act="rename-section" data-section="' + s.id + '">' +
-            esc(s.name || 'Untitled section — tap to name') + '</span>';
-        head = '<div class="section-head">' +
-          '<span class="drag-handle" data-drag-handle>⠿</span>' + nameBody +
-          '<button class="kebab" data-act="toggle-section-menu" data-section="' + s.id + '">⋮</button>' +
-          '<div class="menu"' + (openSectionMenuId === s.id ? '' : ' hidden') + '>' +
-          '<button data-act="rename-section" data-section="' + s.id + '">Rename</button>' +
-          '<button class="danger" data-act="delete-section" data-section="' + s.id + '">Delete</button>' +
-          '</div></div>';
-      }
-      var stepsHtml = s.steps.map(function (stepText, i) { return methodStepRow(s.id, i, stepText); }).join('');
-      return '<div class="method-section" data-drag-row data-section-id="' + s.id + '">' + head +
-        '<div class="step-list" data-steps-for="' + s.id + '">' + stepsHtml + '</div>' +
-        '<div class="step-addline">' +
-        '<input type="text" placeholder="Add a step…" data-add-step-for="' + s.id + '" enterkeyhint="done">' +
-        '<button data-act="add-step" data-section="' + s.id + '">Add</button>' +
-        '</div></div>';
-    }).join('');
-
-    if (!sections.length) {
-      html = '<div class="method-section" data-drag-row data-section-id="">' +
-        '<div class="step-list" data-steps-for=""></div>' +
-        '<div class="step-addline">' +
-        '<input type="text" placeholder="Add a step…" data-add-step-for="" enterkeyhint="done">' +
-        '<button data-act="add-step" data-section="">Add</button>' +
-        '</div></div>';
-    }
-
-    html += '<div class="add-section-bar">' +
-      '<input type="text" id="rd-add-section-name" placeholder="Section name — e.g. Marination, Gravy" enterkeyhint="done">' +
-      '<button id="rd-add-section-go" data-act="add-section">+ Add category</button>' +
-      '</div>';
-
-    host.innerHTML = html;
-
-    if (lastFocusAddStep !== undefined && lastFocusAddStep !== null) {
-      var toFocus = host.querySelector('[data-add-step-for="' + lastFocusAddStep + '"]');
-      if (toFocus) toFocus.focus();
-      lastFocusAddStep = null;
-    }
-    var editInput = $('#step-edit-input');
-    if (editInput) { editInput.focus(); editInput.select(); }
-    var renameInput = $('#section-name-edit-input');
-    if (renameInput) { renameInput.focus(); renameInput.select(); }
-  }
-
-  function methodStepRow(sectionId, idx, text) {
-    var editing = editingStep && editingStep.sectionId === sectionId && editingStep.idx === idx;
-    var body = editing
-      ? '<input class="step-edit-input" id="step-edit-input" type="text" value="' + esc(text) + '">'
-      : '<span class="step-text" data-act="edit-step" data-section="' + sectionId + '" data-idx="' + idx + '">' + esc(text) + '</span>';
-    var menuOpen = openStepMenu && openStepMenu.sectionId === sectionId && openStepMenu.idx === idx;
-    return '<div class="step-row" data-drag-row data-section="' + sectionId + '" data-idx="' + idx + '">' +
-      '<span class="drag-handle" data-drag-handle>⠿</span>' +
-      '<span class="step-num">' + (idx + 1) + '.</span>' + body +
-      '<button class="kebab" data-act="toggle-step-menu" data-section="' + sectionId + '" data-idx="' + idx + '">⋮</button>' +
-      '<div class="menu"' + (menuOpen ? '' : ' hidden') + '>' +
-      '<button data-act="edit-step" data-section="' + sectionId + '" data-idx="' + idx + '">Edit</button>' +
-      '<button class="danger" data-act="delete-step" data-section="' + sectionId + '" data-idx="' + idx + '">Delete</button>' +
-      '</div></div>';
-  }
-
-  function renderRecipeCook(r) {
-    var nameEl = $('#rcook-name');
-    if (nameEl) nameEl.textContent = r.name;
-
-    var st = recipeStatus(r, state.recipeItems, state.items);
-    var pill = $('#rcook-status');
-    if (pill) {
-      pill.className = 'pill ' + (st.makeable ? 'ok' : 'bad');
-      pill.textContent = st.makeable
-        ? (st.low.length ? 'Low on ' + st.low.length : 'Can make now')
-        : 'Need ' + st.missing.length;
-    }
-
-    var banner = $('#rcook-banner');
-    if (banner) {
-      if (st.missing.length) {
-        banner.hidden = false;
-        banner.className = 'rcook-banner bad';
-        banner.textContent = "Out of: " + st.missing.join(', ');
-      } else if (st.low.length) {
-        banner.hidden = false;
-        banner.className = 'rcook-banner warn';
-        banner.textContent = 'Running low: ' + st.low.join(', ');
-      } else {
-        banner.hidden = true;
-      }
-    }
-
-    var lines = state.recipeItems.filter(function (ri) { return ri.recipe_id === r.id; })
-      .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0) || (a.created_at || '').localeCompare(b.created_at || ''); });
-    var linesHost = $('#rcook-lines');
-    if (linesHost) {
-      linesHost.innerHTML = lines.length ? lines.map(function (ri) {
-        var name = recipeItemName(ri, state.items);
-        var match = findInventoryMatch(state.items, name);
-        var tagCls = !match ? 'untracked' : match.is_staple ? 'staple' : match.state;
-        var tagTxt = !match ? 'not tracked' : match.is_staple ? 'staple' : match.state;
-        return '<div class="rcook-line"><span>' + esc(name) + '</span>' +
-          '<span class="rcook-line-right">' +
-          (ri.display_qty ? '<span class="qty">' + esc(ri.display_qty) + '</span>' : '') +
-          '<span class="tag ' + tagCls + '">' + tagTxt + '</span>' +
-          '</span></div>';
-      }).join('') : '<div class="empty">No ingredients yet.</div>';
-    }
-
-    var stepsHost = $('#rcook-steps');
-    if (stepsHost) {
-      var sections = sectionsOf(r).filter(function (s) { return s.steps.length; });
-      if (!sections.length) {
-        stepsHost.innerHTML = '<div class="empty">No method yet.</div>';
-      } else if (sections.length === 1) {
-        var only = sections[0];
-        var heading = sectionNeedsHeader(only, sections)
-          ? '<div class="rcook-section-name">' + esc(only.name || 'General') + '</div>' : '';
-        stepsHost.innerHTML = heading + cookStepListHtml(only.steps);
-      } else {
-        if (cookSlideIndex >= sections.length) cookSlideIndex = sections.length - 1;
-        stepsHost.innerHTML = cookCarouselHtml(sections);
-        var track = $('#rcook-track');
-        if (track) {
-          track.scrollLeft = cookSlideIndex * track.clientWidth;
-          track.addEventListener('scroll', onCookTrackScroll);
-        }
-      }
-    }
-  }
-
-  function cookStepListHtml(steps) {
-    return '<ol class="rcook-step-list">' +
-      steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>';
-  }
-
-  // One method section per swipeable slide (like a multi-photo social post):
-  // native horizontal scroll-snap does the swipe/paging, dots + arrows show
-  // and control position for mouse/keyboard use on a laptop.
-  function cookCarouselHtml(sections) {
-    var slides = sections.map(function (s) {
-      return '<div class="rcook-slide"><div class="rcook-slide-title">' + esc(s.name || 'General') + '</div>' +
-        cookStepListHtml(s.steps) + '</div>';
-    }).join('');
-    var dots = sections.map(function (_, i) {
-      return '<button class="dot' + (i === cookSlideIndex ? ' active' : '') + '" data-act="cook-slide-go" data-idx="' + i + '" aria-label="Section ' + (i + 1) + ' of ' + sections.length + '"></button>';
-    }).join('');
-    return '<div class="rcook-carousel">' +
-      '<button class="rcook-nav prev" data-act="cook-slide-prev"' + (cookSlideIndex === 0 ? ' disabled' : '') + ' aria-label="Previous section">‹</button>' +
-      '<div class="rcook-track" id="rcook-track">' + slides + '</div>' +
-      '<button class="rcook-nav next" data-act="cook-slide-next"' + (cookSlideIndex === sections.length - 1 ? ' disabled' : '') + ' aria-label="Next section">›</button>' +
-      '</div>' +
-      '<div class="rcook-dots">' + dots + '</div>';
-  }
-
-  function onCookTrackScroll(e) {
-    var track = e.target;
-    if (!track.clientWidth) return;
-    var idx = Math.round(track.scrollLeft / track.clientWidth);
-    if (idx === cookSlideIndex) return;
-    cookSlideIndex = idx;
-    updateCookCarouselChrome();
-  }
-
-  function updateCookCarouselChrome() {
-    var wrap = $('#recipe-cook');
-    if (!wrap) return;
-    var slideCount = wrap.querySelectorAll('.rcook-slide').length;
-    wrap.querySelectorAll('.rcook-dots .dot').forEach(function (d, i) {
-      d.classList.toggle('active', i === cookSlideIndex);
-    });
-    var prevBtn = wrap.querySelector('.rcook-nav.prev');
-    var nextBtn = wrap.querySelector('.rcook-nav.next');
-    if (prevBtn) prevBtn.disabled = cookSlideIndex === 0;
-    if (nextBtn) nextBtn.disabled = cookSlideIndex === slideCount - 1;
-  }
-
-  function goToCookSlide(i) {
-    var track = $('#rcook-track');
-    if (!track) return;
-    var slides = track.querySelectorAll('.rcook-slide');
-    if (i < 0 || i >= slides.length) return;
-    cookSlideIndex = i;
-    track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' });
-    updateCookCarouselChrome();
   }
 
   function renderSync() {
@@ -2025,107 +1685,240 @@
     var cls = 'pill', txt;
     if (!state.online) { cls += ' warn'; txt = 'Offline'; }
     else if (state.syncing) { txt = 'Syncing…'; }
+    else if (state.queue.length && state.blocked) { cls += ' warn'; txt = 'Needs DB update'; }
     else if (state.queue.length) { cls += ' warn'; txt = state.queue.length + ' pending'; }
     else { cls += ' ok'; txt = 'Synced'; }
     pill.className = cls;
     pill.textContent = txt;
   }
 
-  function fillCategoryList() {
-    var dl = $('#cat-list');
-    if (!dl) return;
-    var seen = {};
-    state.items.forEach(function (i) { if (i.category) seen[i.category] = true; });
-    dl.innerHTML = Object.keys(seen).sort().map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
+  // --------------------------------------------------------- bottom sheet
+  // One sheet element, rebuilt per mode:
+  //   add-item   { section }       edit-item { id }
+  //   add-shop   { cat? }          edit-shop { id }
+  //   account
+  function openSheet(s) {
+    sheet = s;
+    var it = s.mode === 'edit-item' ? byId(s.id) : null;
+    if (s.mode === 'edit-item' && !it) { sheet = null; return; }
+    if (sheet.state == null) sheet.state = it ? it.state : 'have';
+    if (sheet.count == null) sheet.count = it ? countOf(it) : 1;
+    renderSheet();
+    if (s.mode === 'add-item' || s.mode === 'add-shop') {
+      var n = $('#sh-name');
+      if (n) n.focus();
+    }
   }
-  function fillIngredientList() {
-    var dl = $('#ing-list');
-    if (!dl) return;
-    var names = state.items.filter(function (i) { return i.kind === 'ingredient'; })
-      .map(function (i) { return i.name; }).sort();
-    dl.innerHTML = names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('');
-  }
-  function fillRecipeCategoryList() {
-    var dl = $('#recipe-cat-list');
-    if (!dl) return;
-    var seen = {};
-    DEFAULT_RECIPE_CATEGORIES.forEach(function (c) { seen[c] = true; });
-    state.recipes.forEach(function (r) { if (r.category) seen[r.category] = true; });
-    dl.innerHTML = Object.keys(seen).sort().map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
+  function closeSheet() {
+    sheet = null;
+    var el = $('#sheet');
+    if (el) el.hidden = true;
   }
 
-  // --------------------------------------------------------- edit sheet
-  function openSheet(id) {
-    var it = byId(id);
-    if (!it) return;
-    editingId = id;
-    $('#sheet-name').value = it.name;
-    $('#sheet-category').value = it.category || '';
-    $('#sheet-staple').checked = !!it.is_staple;
-    $('#sheet-notes').value = it.notes || '';
-    $('#sheet-staple').closest('.togglerow').style.display = it.kind === 'equipment' ? 'none' : '';
-    $('#sheet').hidden = false;
+  function chipsHtml(names, selected) {
+    return '<div class="chips">' + names.map(function (n) {
+      return '<button class="chip' + (lc(n) === lc(selected) ? ' active' : '') + '" data-act="sheet-chip" data-val="' + esc(n) + '">' +
+        catEmojiFor(n) + ' ' + esc(n) + '</button>';
+    }).join('') + '</div>';
   }
-  function closeSheet() { $('#sheet').hidden = true; editingId = null; }
-  function saveSheet() {
-    if (!editingId) { closeSheet(); return; }
-    var it = byId(editingId);
-    if (!it) { closeSheet(); return; }
-    var patch = {};
-    var name = $('#sheet-name').value.trim();
-    if (name && name !== it.name) patch.name = name;
-    var cat = $('#sheet-category').value.trim() || null;
-    if (cat !== (it.category || null)) patch.category = cat;
-    var staple = $('#sheet-staple').checked;
-    if (it.kind !== 'equipment' && staple !== !!it.is_staple) patch.is_staple = staple;
-    var notes = $('#sheet-notes').value.trim() || null;
-    if (notes !== (it.notes || null)) patch.notes = notes;
-    var id = editingId;
+
+  function renderSheet() {
+    var wrap = $('#sheet');
+    if (!wrap || !sheet) return;
+    var card = wrap.querySelector('.card');
+    var s = sheet, html = '<div class="grabber"></div>';
+    var closeBtn = '<button class="icon-btn" data-act="sheet-close" aria-label="Close">×</button>';
+
+    if (s.mode === 'account') {
+      var email = state.session && state.session.user && state.session.user.email;
+      var pill = $('#sync-pill');
+      html += '<div class="sheet-head"><h2>Account</h2>' + closeBtn + '</div>' +
+        '<div class="acct-status"><b>' + esc(email || 'Signed in') + '</b>Sync: ' + esc(pill ? pill.textContent : '') +
+        (state.blocked ? '<br><small>Some changes are waiting on a database update — run the newest SQL file in <code>supabase/migrations/</code> in the Supabase SQL editor, then tap Sync now.</small>' : '') +
+        '</div>' +
+        '<button class="btn-primary" data-act="sync-now">Sync now</button>' +
+        '<div class="sheet-actions"><button class="btn-soft danger" data-act="signout">Sign out</button></div>';
+      card.innerHTML = html;
+      wrap.hidden = false;
+      return;
+    }
+
+    var isShop = s.mode === 'add-shop' || s.mode === 'edit-shop';
+    var it = s.mode === 'edit-item' ? byId(s.id) : null;
+    var si = s.mode === 'edit-shop' ? findById(state.shoppingItems, s.id) : null;
+    var kind = isShop ? null : (it ? it.kind : KIND_OF[s.section]);
+    var editing = !!(it || si);
+    var title = isShop ? (editing ? 'Edit item' : 'Add to list')
+      : (editing ? 'Edit ' + KIND_LABEL[kind] : 'Add ' + KIND_LABEL[kind]);
+    var namePh = isShop ? 'e.g. Tomatoes' : kind === 'snack' ? 'e.g. Salted chips' : kind === 'equipment' ? 'e.g. Frying pan' : 'e.g. Basmati rice';
+
+    html += '<div class="sheet-head"><h2>' + esc(title) + '</h2>' + closeBtn + '</div>';
+    html += '<div class="field"><label for="sh-name">Name</label>' +
+      '<input id="sh-name" type="text" autocomplete="off" enterkeyhint="' + (editing ? 'done' : 'next') + '" placeholder="' + namePh + '" value="' + esc(it ? it.name : si ? si.name : '') + '"></div>';
+
+    if (isShop) {
+      var shopCat = si ? (findById(state.shoppingCategories, si.category_id) || {}).name : (s.cat || '');
+      html += '<div class="field"><label for="sh-qty">Quantity <span style="font-weight:500">(optional)</span></label>' +
+        '<input id="sh-qty" type="text" autocomplete="off" placeholder="e.g. 2 kg, 1 pack" value="' + esc(si ? si.qty || '' : '') + '"></div>';
+      html += '<div class="field"><label for="sh-cat">Category</label>' +
+        chipsHtml(sortedShoppingCategories(state.shoppingCategories).map(function (c) { return c.name; }), shopCat) +
+        '<input id="sh-cat" type="text" autocomplete="off" placeholder="Pick one above or type a new one" value="' + esc(shopCat || '') + '"></div>';
+    } else if (kind === 'ingredient') {
+      var cat = it ? (it.category || '') : (s.cat || '');
+      html += '<div class="field"><label for="sh-cat">Category</label>' +
+        chipsHtml(ingredientCategoryNames(), cat) +
+        '<input id="sh-cat" type="text" autocomplete="off" placeholder="Pick one above or type a new one" value="' + esc(cat) + '"></div>';
+      html += '<div class="field"><label>Status</label><div class="seg states">' + STATE_CYCLE.map(function (st) {
+        return '<button class="' + st + (s.state === st ? ' active' : '') + '" data-act="sheet-state" data-val="' + st + '">' + STATE_LABEL[st] + '</button>';
+      }).join('') + '</div></div>';
+    } else {
+      html += '<div class="field"><label>How many ' + (kind === 'snack' ? 'do you have' : 'do you own') + '?</label>' +
+        '<div class="big-stepper"><button data-act="sheet-count" data-d="-1" aria-label="One less">−</button>' +
+        '<span class="count" id="sh-count">' + s.count + '</span>' +
+        '<button data-act="sheet-count" data-d="1" aria-label="One more">+</button></div></div>';
+    }
+
+    if (it) {
+      html += '<div class="field"><label for="sh-notes">Notes</label>' +
+        '<input id="sh-notes" type="text" autocomplete="off" placeholder="Brand, where it’s kept…" value="' + esc(it.notes || '') + '"></div>';
+      if (kind === 'ingredient') {
+        html += '<div class="field"><label class="toggle-row"><span>Staple<small>Always around — don’t auto-add to the shopping list when it runs out</small></span>' +
+          '<input id="sh-staple" type="checkbox"' + (it.is_staple ? ' checked' : '') + '></label></div>';
+      }
+    }
+
+    html += '<button class="btn-primary" data-act="sheet-save">' + (editing ? 'Save' : 'Add') + '</button>';
+    if (it) {
+      html += '<div class="sheet-actions">' +
+        (kind !== 'equipment' ? '<button class="btn-soft accent" data-act="sheet-to-list">Add to list</button>' : '') +
+        '<button class="btn-soft danger" data-act="sheet-delete">Delete</button></div>';
+    } else if (si) {
+      html += '<div class="sheet-actions"><button class="btn-soft danger" data-act="sheet-delete">Remove from list</button></div>';
+    } else {
+      html += '<p class="hint">Tip: press Enter to add and keep going.</p>';
+    }
+    card.innerHTML = html;
+    wrap.hidden = false;
+  }
+
+  function sheetVal(sel) { var el = $(sel); return el ? el.value : ''; }
+
+  // keepOpen: Enter-to-add in an add sheet — add, clear the name, stay put
+  // for the next one (category / status / count carry over).
+  function saveSheet(keepOpen) {
+    if (!sheet) return;
+    var s = sheet;
+    var name = sheetVal('#sh-name').trim();
+    if (!name) { var n = $('#sh-name'); if (n) n.focus(); return; }
+
+    if (s.mode === 'add-item') {
+      var kind = KIND_OF[s.section];
+      var added = kind === 'ingredient'
+        ? addItem(kind, name, sheetVal('#sh-cat'), { state: s.state })
+        : addItem(kind, name, null, { qty: s.count });
+      if (!added) return;
+      if (keepOpen) { finishKeepOpen(added.name + ' added'); return; }
+    } else if (s.mode === 'edit-item') {
+      var it = byId(s.id);
+      if (!it) { closeSheet(); return; }
+      var patch = {};
+      if (name !== it.name) patch.name = name;
+      if (it.kind === 'ingredient') {
+        var cat = sheetVal('#sh-cat').trim() || null;
+        if (cat !== (it.category || null)) patch.category = cat;
+        var staple = !!($('#sh-staple') && $('#sh-staple').checked);
+        if (staple !== !!it.is_staple) patch.is_staple = staple;
+      }
+      var notes = sheetVal('#sh-notes').trim() || null;
+      if (notes !== (it.notes || null)) patch.notes = notes;
+      var id = it.id;
+      closeSheet();
+      if (Object.keys(patch).length) editItem(id, patch, 'Saved');
+      if (it.kind === 'ingredient' && s.state !== it.state) {
+        applyStateChange(id, s.state, it.name + ' → ' + STATE_LABEL[s.state]);
+      } else if (isCounted(it.kind) && s.count !== countOf(it)) {
+        setCount(id, s.count);
+      }
+      return;
+    } else if (s.mode === 'add-shop') {
+      var shopCat = addShoppingCategory(sheetVal('#sh-cat').trim() || DEFAULT_SHOP_CATEGORY);
+      if (!shopCat || !addShoppingItem(shopCat.id, name, sheetVal('#sh-qty'))) return;
+      s.cat = shopCat.name;
+      if (keepOpen) { finishKeepOpen(name + ' added to list'); return; }
+    } else if (s.mode === 'edit-shop') {
+      var si = findById(state.shoppingItems, s.id);
+      if (!si) { closeSheet(); return; }
+      var sp = {};
+      if (name !== si.name) sp.name = name;
+      var qty = sheetVal('#sh-qty').trim() || null;
+      if (qty !== (si.qty || null)) sp.qty = qty;
+      var catName = sheetVal('#sh-cat').trim() || DEFAULT_SHOP_CATEGORY;
+      var target = addShoppingCategory(catName);
+      if (target && target.id !== si.category_id) sp.category_id = target.id;
+      closeSheet();
+      if (Object.keys(sp).length) editShoppingItem(si.id, sp);
+      return;
+    }
     closeSheet();
-    if (Object.keys(patch).length) editItem(id, patch, 'Saved');
+  }
+  function finishKeepOpen(msg) {
+    var n = $('#sh-name');
+    if (n) { n.value = ''; n.focus(); }
+    toast(msg);
   }
 
-  // ----------------------------------------------------- recipe view nav
-  function openRecipeEdit(id) {
-    if (!recipeById(id)) return;
-    openRecipeId = id;
-    openRecipeMode = 'edit';
-    openSectionMenuId = null;
-    openStepMenu = null;
-    renamingSectionId = null;
-    editingStep = null;
-    renderRecipeViews();
+  function onSheetTap(act, el) {
+    if (act === 'sheet-close') closeSheet();
+    else if (act === 'sheet-save') saveSheet(false);
+    else if (act === 'sheet-chip') {
+      var v = el.getAttribute('data-val');
+      var input = $('#sh-cat');
+      var turningOff = el.classList.contains('active');
+      if (input) input.value = turningOff ? '' : v;
+      syncSheetChips();
+    }
+    else if (act === 'sheet-state') {
+      sheet.state = el.getAttribute('data-val');
+      el.parentElement.querySelectorAll('button').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-val') === sheet.state);
+      });
+    }
+    else if (act === 'sheet-count') {
+      sheet.count = Math.max(0, sheet.count + parseInt(el.getAttribute('data-d'), 10));
+      var c = $('#sh-count');
+      if (c) c.textContent = sheet.count;
+    }
+    else if (act === 'sheet-delete') {
+      var s = sheet;
+      closeSheet();
+      if (s.mode === 'edit-item') deleteItem(s.id);
+      else if (s.mode === 'edit-shop') removeShoppingItem(s.id);
+    }
+    else if (act === 'sheet-to-list') {
+      var id = sheet.id;
+      closeSheet();
+      addToListFromInventory(id);
+    }
+    else if (act === 'sync-now') {
+      closeSheet();
+      reconcile().then(function (ok) { toast(ok ? 'Synced' : "Couldn't sync — check your connection"); });
+    }
+    else if (act === 'signout') { closeSheet(); signOut(); }
   }
-  function openRecipeCook(id) {
-    if (!recipeById(id)) return;
-    openRecipeId = id;
-    openRecipeMode = 'cook';
-    cookSlideIndex = 0;
-    renderRecipeViews();
-  }
-  function saveAndCloseRecipe() {
-    var active = document.activeElement;
-    if (active && $('#recipe-edit') && $('#recipe-edit').contains(active)) active.blur();
-    closeRecipeViews();
-  }
-  function closeRecipeViews() {
-    openRecipeId = null;
-    openRecipeMode = null;
-    openSectionMenuId = null;
-    openStepMenu = null;
-    renamingSectionId = null;
-    editingStep = null;
-    var e = $('#recipe-edit'), c = $('#recipe-cook');
-    if (e) e.hidden = true;
-    if (c) c.hidden = true;
+  function syncSheetChips() {
+    var v = lc(sheetVal('#sh-cat'));
+    var wrap = $('#sheet');
+    if (wrap) wrap.querySelectorAll('[data-act="sheet-chip"]').forEach(function (b) {
+      b.classList.toggle('active', lc(b.getAttribute('data-val')) === v && v !== '');
+    });
   }
 
   // ------------------------------------------------------------- events
-  function onEnter(input, fn) {
-    if (!input) return;
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && input.value.trim()) { fn(input.value); input.value = ''; }
-    });
+  function closeMenus() {
+    var changed = openInvCatMenu || openShopCatMenuId;
+    openInvCatMenu = null;
+    openShopCatMenuId = null;
+    return !!changed;
   }
 
   function bindEvents() {
@@ -2134,175 +1927,118 @@
       loginGo.addEventListener('click', doLogin);
       $('#login-password').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
     }
-    var signout = $('#signout');
-    if (signout) signout.addEventListener('click', signOut);
-
-    onEnter($('#add-ingredient'), function (v) { addItem('ingredient', v); });
-    onEnter($('#add-equipment'), function (v) { addItem('equipment', v); });
-
-    var addRecipeBtn = $('#add-recipe-btn');
-    if (addRecipeBtn) addRecipeBtn.addEventListener('click', function () {
-      var r = addRecipe('New recipe');
-      if (r) {
-        justCreatedRecipeId = r.id;
-        openRecipeEdit(r.id);
-      }
-    });
 
     var tabs = $('nav.tabs');
     if (tabs) tabs.addEventListener('click', function (e) {
       var b = e.target.closest('button[data-tab]');
       if (!b) return;
-      state.ui.tab = b.getAttribute('data-tab');
-      persist('ui'); renderTabs();
+      var tab = b.getAttribute('data-tab');
+      if (tab === state.ui.tab) { window.scrollTo(0, 0); return; }
+      state.ui.tab = tab;
+      closeMenus();
+      persist('ui'); renderAll();
+      window.scrollTo(0, 0);
     });
 
-    var cook = $('#view-cook');
-    if (cook) cook.addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-cookfilter]');
+    var seg = $('#inv-seg');
+    if (seg) seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-invsec]');
       if (!b) return;
-      state.ui.cookFilter = b.getAttribute('data-cookfilter');
-      persist('ui'); renderCook();
+      state.ui.invSection = b.getAttribute('data-invsec');
+      invSearch = '';
+      var s = $('#inv-search'); if (s) s.value = '';
+      closeMenus();
+      persist('ui'); renderAll();
     });
 
-    document.addEventListener('click', onTap);
+    var search = $('#inv-search');
+    if (search) {
+      search.addEventListener('input', function () { invSearch = search.value; renderInventory(); });
+      search.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { search.value = ''; invSearch = ''; renderInventory(); search.blur(); }
+        if (e.key === 'Enter') search.blur();
+      });
+    }
+    var clr = $('#inv-search-clear');
+    if (clr) clr.addEventListener('click', function (e) {
+      e.preventDefault();
+      invSearch = ''; if (search) search.value = '';
+      renderInventory();
+    });
+
     document.addEventListener('click', function (e) {
-      if (openMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-menu"]')) {
-        openMenuId = null; renderCook();
-      }
-      if (openStepMenu && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-step-menu"]')) {
-        openStepMenu = null; renderRecipeViews();
-      }
-      if (openSectionMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-section-menu"]')) {
-        openSectionMenuId = null; renderRecipeViews();
-      }
-      if (openShopCatMenuId && !e.target.closest('.menu') && !e.target.closest('[data-act="toggle-shopcat-menu"]')) {
-        openShopCatMenuId = null; renderShopping();
-      }
+      var inMenu = e.target.closest('.menu') || e.target.closest('[data-act="toggle-invcat-menu"]') ||
+        e.target.closest('[data-act="toggle-shopcat-menu"]');
+      if (!inMenu && closeMenus()) { renderInventory(); renderShopping(); }
     });
+    document.addEventListener('click', onTap);
 
-    var sheet = $('#sheet');
-    if (sheet) {
-      sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
-      $('#sheet-cancel').addEventListener('click', closeSheet);
-      $('#sheet-save').addEventListener('click', saveSheet);
-      $('#sheet-del').addEventListener('click', function () {
-        var id = editingId; closeSheet(); if (id) deleteItem(id);
+    var sheetEl = $('#sheet');
+    if (sheetEl) {
+      sheetEl.addEventListener('click', function (e) { if (e.target === sheetEl) closeSheet(); });
+      sheetEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeSheet(); return; }
+        if (e.key !== 'Enter' || !sheet || e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') return;
+        e.preventDefault();
+        var adding = sheet.mode === 'add-item' || sheet.mode === 'add-shop';
+        saveSheet(adding);
       });
+      sheetEl.addEventListener('input', function (e) { if (e.target.id === 'sh-cat') syncSheetChips(); });
     }
 
-    // recipe edit view
-    var back = $('#rd-back'); if (back) back.addEventListener('click', saveAndCloseRecipe);
-    var save = $('#rd-save'); if (save) save.addEventListener('click', saveAndCloseRecipe);
-    var del = $('#rd-delete'); if (del) del.addEventListener('click', function () {
-      if (openRecipeId) deleteRecipe(openRecipeId);
-    });
-    var rdName = $('#rd-name');
-    if (rdName) rdName.addEventListener('change', function () {
-      var v = rdName.value.trim();
-      if (openRecipeId && v) editRecipe(openRecipeId, { name: v });
-    });
-    var rdCategory = $('#rd-category');
-    if (rdCategory) rdCategory.addEventListener('change', function () {
-      if (!openRecipeId) return;
-      var v = rdCategory.value.trim() || null;
-      var cur = (recipeById(openRecipeId) || {}).category || null;
-      if (v !== cur) editRecipe(openRecipeId, { category: v });
-    });
-    var rdAddName = $('#rd-add-name'), rdAddQty = $('#rd-add-qty'), rdAddGo = $('#rd-add-go');
-    var doAddLine = function () {
-      if (!openRecipeId || !rdAddName.value.trim()) return;
-      addRecipeItem(openRecipeId, rdAddName.value, rdAddQty.value);
-      rdAddName.value = ''; rdAddQty.value = '';
-      rdAddName.focus();
-    };
-    if (rdAddGo) rdAddGo.addEventListener('click', doAddLine);
-    [rdAddName, rdAddQty].forEach(function (el) {
-      if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') doAddLine(); });
-    });
-    var linesHost = $('#rd-lines');
-    if (linesHost) linesHost.addEventListener('change', function (e) {
-      var qty = e.target.closest('[data-lineqty]');
-      if (qty) editRecipeItem(qty.getAttribute('data-lineqty'), { display_qty: qty.value.trim() || null });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && sheet) { closeSheet(); return; }
+      var t = e.target;
+      var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA');
+      if (typing || sheet || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/' && state.ui.tab === 'inventory' && search) { e.preventDefault(); search.focus(); }
     });
 
-    // method area: Enter-to-submit on add-step / add-section inputs, and
-    // commit-on-blur for the inline step/section rename inputs. Everything
-    // here is event-delegated on the stable #rd-method container, since its
-    // contents (sections, steps, the add bars) are fully rebuilt on every
-    // render — see renderMethodArea().
-    var methodHost = $('#rd-method');
-    if (methodHost) {
-      methodHost.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        var t = e.target;
-        if (t.id === 'step-edit-input' || t.id === 'section-name-edit-input') { t.blur(); return; }
-        if (t.hasAttribute('data-add-step-for') || t.id === 'rd-add-section-name') {
-          var btn = t.parentElement.querySelector('[data-act]');
-          t.blur(); // move focus off the draft input first so the re-render isn't suppressed
-          if (btn) btn.click();
-        }
+    ['#inv-list', '#shopping-categories'].forEach(bindListContainer);
+
+    // Hide the floating + while typing in the page (it would sit on top of
+    // the inline add buttons, and the keyboard is up anyway).
+    var mainEl = $('main');
+    if (mainEl) {
+      mainEl.addEventListener('focusin', function (e) {
+        if (e.target.tagName === 'INPUT') document.body.classList.add('typing');
       });
-      methodHost.addEventListener('focusout', function (e) {
-        var t = e.target;
-        if (t.id === 'step-edit-input' && editingStep) {
-          var key = editingStep; editingStep = null;
-          editMethodStep(openRecipeId, key.sectionId, key.idx, t.value);
-        } else if (t.id === 'section-name-edit-input' && renamingSectionId) {
-          var sid = renamingSectionId; renamingSectionId = null;
-          renameMethodSection(openRecipeId, sid, t.value);
-        }
-      });
-      methodHost.addEventListener('pointerdown', function (e) {
-        var handle = e.target.closest('[data-drag-handle]');
-        if (!handle) return;
-        var stepRow = handle.closest('.step-row');
-        if (stepRow) {
-          var listEl = stepRow.parentElement;
-          beginRowDrag(e, stepRow, listEl, function (from, to) {
-            moveMethodStep(openRecipeId, stepRow.getAttribute('data-section'), from, to);
-          });
-          return;
-        }
-        var sectionRow = handle.closest('.method-section');
-        if (sectionRow && sectionRow.parentElement === methodHost) {
-          beginRowDrag(e, sectionRow, methodHost, function (from, to) {
-            moveMethodSection(openRecipeId, from, to);
-          });
-        }
-      });
+      mainEl.addEventListener('focusout', function () { document.body.classList.remove('typing'); });
     }
-
-    // recipe cook (view-only) mode
-    var cookBack = $('#rcook-back'); if (cookBack) cookBack.addEventListener('click', closeRecipeViews);
-
-    // Category quick-add rows, "+ Add category" bars and the shopping-category
-    // inline rename input are all rebuilt on every render (like the method
-    // area above), so their Enter-to-submit / commit-on-blur wiring is
-    // delegated onto the stable container instead of bound per-element.
-    [['#ingredients', renderInventory], ['#recipes', renderCook], ['#shopping-categories', renderShopping]]
-      .forEach(function (pair) { bindQuickAddContainer(pair[0]); });
   }
 
-  function bindQuickAddContainer(hostSel) {
+  // Quick-add rows, "+ Add category" bars and inline category rename inputs
+  // are rebuilt on every render, so their Enter-to-submit / commit-on-blur
+  // wiring is delegated onto the stable container.
+  function bindListContainer(hostSel) {
     var host = $(hostSel);
     if (!host) return;
     host.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter') return;
       var t = e.target;
+      if (e.key === 'Escape' && t.classList.contains('cat-rename-input')) {
+        renamingInvCat = null; renamingShopCatId = null;
+        t.blur(); renderInventory(); renderShopping();
+        return;
+      }
+      if (e.key !== 'Enter') return;
       if (t.classList.contains('qa-name') || t.classList.contains('qa-qty')) {
         var goBtn = t.closest('.quick-add-row').querySelector('.qa-go');
         if (goBtn) goBtn.click();
       } else if (t.classList.contains('add-cat-input')) {
-        var addBtn = t.closest('.add-category-bar').querySelector('.add-cat-go');
+        var addBtn = t.closest('.add-category-bar').querySelector('button');
         if (addBtn) addBtn.click();
-      } else if (t.classList.contains('shopcat-rename-input')) {
+      } else if (t.classList.contains('cat-rename-input')) {
         t.blur();
       }
     });
     host.addEventListener('focusout', function (e) {
       var t = e.target;
-      if (t.classList.contains('shopcat-rename-input') && renamingShopCatId) {
+      if (!t.classList.contains('cat-rename-input')) return;
+      if (renamingInvCat) {
+        var oldName = renamingInvCat; renamingInvCat = null;
+        var v = t.value.trim();
+        if (v && v !== oldName) recategorize(oldName, v); else renderInventory();
+      } else if (renamingShopCatId) {
         var id = renamingShopCatId; renamingShopCatId = null;
         renameShoppingCategory(id, t.value);
         renderShopping();
@@ -2310,188 +2046,91 @@
     });
   }
 
-  // Touch- and mouse-friendly row reordering via Pointer Events (no library,
-  // works on iOS Safari where the native HTML5 drag-and-drop API does not).
-  // `row` must be a direct child of `scopeEl` and every reorderable sibling
-  // must carry [data-drag-row]. onCommit(fromIndex, toIndex) fires once, on
-  // release, only if the row actually moved.
-  function beginRowDrag(e, row, scopeEl, onCommit) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    var rows = Array.prototype.slice.call(scopeEl.children).filter(function (el) {
-      return el.nodeType === 1 && el.hasAttribute('data-drag-row');
-    });
-    var startIndex = rows.indexOf(row);
-    if (startIndex === -1) return;
-    e.preventDefault();
-
-    var startTops = rows.map(function (r) { return r.offsetTop; });
-    var startHeights = rows.map(function (r) { return r.offsetHeight; });
-    var rowHeight = startHeights[startIndex];
-    var startClientY = e.clientY;
-    var baseline = Math.min.apply(null, startTops);
-    var others = [];
-    rows.forEach(function (r, i) { if (i !== startIndex) others.push({ el: r, top: startTops[i], height: startHeights[i] }); });
-    var currentIndex = startIndex;
-
-    row.classList.add('dragging');
-    row.style.transition = 'none';
-    try { handleCapture(e); } catch (err) { /* pointer capture unsupported — drag still works via document listeners */ }
-    function handleCapture(ev) { if (ev.target.setPointerCapture) ev.target.setPointerCapture(ev.pointerId); }
-
-    function layout(dy) {
-      row.style.transform = 'translateY(' + dy + 'px)';
-      var draggedCenter = startTops[startIndex] + rowHeight / 2 + dy;
-      var newIndex = computeDropIndex(startTops, startHeights, startIndex, draggedCenter);
-      var cursor = baseline, placed = 0;
-      others.forEach(function (o) {
-        if (placed === newIndex) cursor += rowHeight;
-        o.el.style.transform = 'translateY(' + (cursor - o.top) + 'px)';
-        cursor += o.height;
-        placed++;
-      });
-      currentIndex = newIndex;
-    }
-    function cleanup() {
-      row.classList.remove('dragging');
-      row.style.transform = ''; row.style.transition = '';
-      others.forEach(function (o) { o.el.style.transform = ''; });
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
-      document.removeEventListener('pointercancel', onUp);
-    }
-    function onMove(ev) { layout(ev.clientY - startClientY); }
-    function onUp() {
-      cleanup();
-      if (currentIndex !== startIndex) onCommit(startIndex, currentIndex);
-    }
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-    document.addEventListener('pointercancel', onUp);
-  }
-
   function onTap(e) {
     var el = e.target.closest('[data-act]');
     if (!el) return;
     var act = el.getAttribute('data-act');
     var id = el.getAttribute('data-id');
+    if (act.indexOf('sheet-') === 0 || act === 'sync-now' || act === 'signout') { onSheetTap(act, el); return; }
+
     if (act === 'cycle') cycleState(id);
-    else if (act === 'equip') toggleEquipment(id);
-    else if (act === 'edit') openSheet(id);
-    else if (act === 'open-cook') openRecipeCook(id);
-    else if (act === 'remove-line') removeRecipeItem(id);
+    else if (act === 'inc') stepCount(id, 1);
+    else if (act === 'dec') stepCount(id, -1);
+    else if (act === 'edit') openSheet({ mode: 'edit-item', id: id });
+    else if (act === 'edit-shop-item') openSheet({ mode: 'edit-shop', id: id });
+    else if (act === 'open-account') openSheet({ mode: 'account' });
+    else if (act === 'fab') {
+      if (state.ui.tab === 'shopping') openSheet({ mode: 'add-shop' });
+      else openSheet({ mode: 'add-item', section: state.ui.invSection });
+    }
+    else if (act === 'inv-filter') {
+      var f = el.getAttribute('data-val');
+      state.ui.invFilter = state.ui.invFilter === f ? 'all' : f;
+      persist('ui'); renderInventory();
+    }
     else if (act === 'toggle-group') {
       var g = el.getAttribute('data-group');
+      if (invSearch || state.ui.invFilter !== 'all') return; // groups are forced open while filtering
       state.ui.collapsed[g] = !state.ui.collapsed[g];
       persist('ui'); renderInventory();
     }
-    else if (act === 'toggle-recipe-group') {
-      var rg = el.getAttribute('data-group');
-      state.ui.collapsedRecipes[rg] = !state.ui.collapsedRecipes[rg];
-      persist('ui'); renderCook();
+    else if (act === 'collapse-all' || act === 'expand-all') {
+      var collapse = act === 'collapse-all';
+      closeMenus();
+      groupIngredients(state.items, state.ui.inventoryCategories).forEach(function (grp) {
+        if (collapse) state.ui.collapsed[grp.name] = true; else delete state.ui.collapsed[grp.name];
+      });
+      persist('ui'); renderInventory();
     }
-    else if (act === 'toggle-menu') {
-      openMenuId = (openMenuId === id) ? null : id;
-      renderCook();
-    }
-    else if (act === 'edit-recipe') { openMenuId = null; openRecipeEdit(id); }
-    else if (act === 'delete-recipe') { openMenuId = null; deleteRecipe(id); }
-    else if (act === 'edit-step') {
-      openStepMenu = null;
-      editingStep = { sectionId: el.getAttribute('data-section'), idx: parseInt(el.getAttribute('data-idx'), 10) };
-      renderRecipeViews();
-    }
-    else if (act === 'delete-step') {
-      openStepMenu = null;
-      if (openRecipeId) removeMethodStep(openRecipeId, el.getAttribute('data-section'), parseInt(el.getAttribute('data-idx'), 10));
-    }
-    else if (act === 'toggle-step-menu') {
-      var stepKey = { sectionId: el.getAttribute('data-section'), idx: parseInt(el.getAttribute('data-idx'), 10) };
-      openStepMenu = (openStepMenu && openStepMenu.sectionId === stepKey.sectionId && openStepMenu.idx === stepKey.idx)
-        ? null : stepKey;
-      renderRecipeViews();
-    }
-    else if (act === 'rename-section') {
-      openSectionMenuId = null;
-      renamingSectionId = el.getAttribute('data-section');
-      renderRecipeViews();
-    }
-    else if (act === 'delete-section') {
-      openSectionMenuId = null;
-      if (openRecipeId) removeMethodSection(openRecipeId, el.getAttribute('data-section'));
-    }
-    else if (act === 'toggle-section-menu') {
-      var secId = el.getAttribute('data-section');
-      openSectionMenuId = (openSectionMenuId === secId) ? null : secId;
-      renderRecipeViews();
-    }
-    else if (act === 'add-step') {
-      var sectionForAdd = el.getAttribute('data-section') || null;
-      var stepInput = $('#rd-method').querySelector('[data-add-step-for="' + (sectionForAdd || '') + '"]');
-      if (stepInput && stepInput.value.trim() && openRecipeId) {
-        lastFocusAddStep = sectionForAdd;
-        stepInput.blur(); // deterministically clear focus before the rebuild, regardless of click-vs-focus quirks
-        addMethodStep(openRecipeId, sectionForAdd, stepInput.value);
-      }
-    }
-    else if (act === 'add-section') {
-      var sectionNameInput = $('#rd-add-section-name');
-      if (sectionNameInput && sectionNameInput.value.trim() && openRecipeId) {
-        sectionNameInput.blur();
-        var createdSection = addMethodSection(openRecipeId, sectionNameInput.value);
-        if (createdSection) lastFocusAddStep = createdSection.id;
-      }
-    }
-    else if (act === 'cook-slide-prev') { goToCookSlide(cookSlideIndex - 1); }
-    else if (act === 'cook-slide-next') { goToCookSlide(cookSlideIndex + 1); }
-    else if (act === 'cook-slide-go') { goToCookSlide(parseInt(el.getAttribute('data-idx'), 10)); }
 
-    // ---- category quick-add / management (Inventory, Cook, Shopping) ----
+    // ---- ingredient category quick-add / management ----
     else if (act === 'toggle-inv-quickadd') {
       var invCat = el.getAttribute('data-cat');
       openInvQuickAdd = (openInvQuickAdd === invCat) ? null : invCat;
+      if (openInvQuickAdd) delete state.ui.collapsed[invCat];
       renderInventory();
-      focusFirst('#ingredients', '.qa-name');
+      focusFirst('#inv-list', '.qa-name');
     }
     else if (act === 'inv-quick-add-go') {
       var invCat2 = el.getAttribute('data-cat');
       var invRow = el.closest('.quick-add-row');
       var invName = invRow && invRow.querySelector('.qa-name');
       if (invName && invName.value.trim()) {
-        addItem('ingredient', invName.value, invCat2 === 'Uncategorized' ? null : invCat2);
+        var v = invName.value;
+        invName.value = '';
+        addItem('ingredient', v, invCat2 === 'Uncategorized' ? null : invCat2);
         openInvQuickAdd = invCat2;
         renderInventory();
-        focusFirst('#ingredients', '.qa-name');
+        focusFirst('#inv-list', '.qa-name');
       }
     }
-    else if (act === 'delete-inv-category') { removeInventoryCategory(el.getAttribute('data-cat')); }
-    else if (act === 'toggle-cook-quickadd') {
-      var cookCat = el.getAttribute('data-cat');
-      openCookQuickAdd = (openCookQuickAdd === cookCat) ? null : cookCat;
-      renderCook();
-      focusFirst('#recipes', '.qa-name');
+    else if (act === 'toggle-invcat-menu') {
+      var mc = el.getAttribute('data-cat');
+      openInvCatMenu = openInvCatMenu === mc ? null : mc;
+      openShopCatMenuId = null;
+      renderInventory();
     }
-    else if (act === 'cook-quick-add-go') {
-      var cookCat2 = el.getAttribute('data-cat');
-      var cookRow = el.closest('.quick-add-row');
-      var cookName = cookRow && cookRow.querySelector('.qa-name');
-      if (cookName && cookName.value.trim()) {
-        var newRecipe = addRecipe(cookName.value, cookCat2 === 'Uncategorized' ? null : cookCat2);
-        openCookQuickAdd = null;
-        if (newRecipe) { justCreatedRecipeId = newRecipe.id; openRecipeEdit(newRecipe.id); }
-      }
+    else if (act === 'rename-invcat') {
+      openInvCatMenu = null;
+      renamingInvCat = el.getAttribute('data-cat');
+      renderInventory();
     }
-    else if (act === 'delete-cook-category') { removeCookCategory(el.getAttribute('data-cat')); }
+    else if (act === 'delete-invcat') {
+      var dc = el.getAttribute('data-cat');
+      openInvCatMenu = null;
+      var hasItems = state.items.some(function (i) { return i.kind === 'ingredient' && lc(i.category) === lc(dc); });
+      if (hasItems) recategorize(dc, null); else removeInventoryCategory(dc);
+    }
     else if (act === 'add-category') {
       var ctx = el.getAttribute('data-ctx');
       var bar = el.closest('.add-category-bar');
       var catInput = bar && bar.querySelector('.add-cat-input');
       if (catInput && catInput.value.trim()) {
         var catName = catInput.value;
-        if (ctx === 'cook') addCookCategory(catName);
-        else if (ctx === 'inventory') addInventoryCategory(catName);
-        else if (ctx === 'shop') addShoppingCategory(catName);
-        var hostSel = ctx === 'cook' ? '#recipes' : ctx === 'inventory' ? '#ingredients' : '#shopping-categories';
-        focusFirst(hostSel, '.add-cat-input');
+        catInput.value = '';
+        if (ctx === 'inventory') addInventoryCategory(catName);
+        else addShoppingCategory(catName);
+        focusFirst(ctx === 'inventory' ? '#inv-list' : '#shopping-categories', '.add-cat-input');
       }
     }
 
@@ -2504,6 +2143,7 @@
     else if (act === 'toggle-shop-quickadd') {
       var shopCat = el.getAttribute('data-cat');
       openShopQuickAdd = (openShopQuickAdd === shopCat) ? null : shopCat;
+      if (openShopQuickAdd) delete state.ui.collapsedShopping[shopCat];
       renderShopping();
       focusFirst('#shopping-categories', '.qa-name');
     }
@@ -2513,7 +2153,9 @@
       var shopName = shopRow && shopRow.querySelector('.qa-name');
       var shopQty = shopRow && shopRow.querySelector('.qa-qty');
       if (shopName && shopName.value.trim()) {
-        addShoppingItem(shopCat2, shopName.value, shopQty ? shopQty.value : '');
+        var nm = shopName.value, qt = shopQty ? shopQty.value : '';
+        shopName.value = ''; if (shopQty) shopQty.value = '';
+        addShoppingItem(shopCat2, nm, qt);
         openShopQuickAdd = shopCat2;
         renderShopping();
         focusFirst('#shopping-categories', '.qa-name');
@@ -2524,6 +2166,7 @@
     else if (act === 'toggle-shopcat-menu') {
       var shopCatId = el.getAttribute('data-cat');
       openShopCatMenuId = (openShopCatMenuId === shopCatId) ? null : shopCatId;
+      openInvCatMenu = null;
       renderShopping();
     }
     else if (act === 'rename-shopcat') {
@@ -2568,7 +2211,7 @@
   function signOut() {
     if (client && client.auth) { try { client.auth.signOut(); } catch (e) {} }
     state.session = null;
-    closeRecipeViews();
+    closeSheet();
     hide('#app'); show('#login');
   }
 
@@ -2608,10 +2251,11 @@
       state.session = (res && res.data && res.data.session) || null;
       if (!state.session) { hide('#app'); show('#login'); return; }
       hide('#login'); show('#app');
+      renderChrome();
       if (client.auth.onAuthStateChange) {
         client.auth.onAuthStateChange(function (_evt, session) {
           state.session = session || null;
-          if (!session) { closeRecipeViews(); hide('#app'); show('#login'); }
+          if (!session) { closeSheet(); hide('#app'); show('#login'); }
         });
       }
       return reconcile();
@@ -2625,30 +2269,24 @@
   window.Kitchen = {
     state: state,
     nextState: nextState,
+    countOf: countOf,
     groupIngredients: groupIngredients,
-    findInventoryMatch: findInventoryMatch,
-    recipeItemName: recipeItemName,
-    recipeStatus: recipeStatus,
-    cookList: cookList,
-    groupRecipeRows: groupRecipeRows,
+    countedList: countedList,
+    inventoryStats: inventoryStats,
     applyOps: applyOps,
     coalesce: coalesce,
     queueFor: queueFor,
+    isSchemaError: isSchemaError,
     addItem: addItem,
     cycleState: cycleState,
-    toggleEquipment: toggleEquipment,
+    applyStateChange: applyStateChange,
+    setCount: setCount,
+    stepCount: stepCount,
     editItem: editItem,
     deleteItem: deleteItem,
-    addRecipe: addRecipe,
-    editRecipe: editRecipe,
-    deleteRecipe: deleteRecipe,
-    addRecipeItem: addRecipeItem,
-    editRecipeItem: editRecipeItem,
-    removeRecipeItem: removeRecipeItem,
-    addCookCategory: addCookCategory,
-    removeCookCategory: removeCookCategory,
     addInventoryCategory: addInventoryCategory,
     removeInventoryCategory: removeInventoryCategory,
+    recategorize: recategorize,
     groupShoppingItems: groupShoppingItems,
     addShoppingCategory: addShoppingCategory,
     renameShoppingCategory: renameShoppingCategory,
@@ -2658,20 +2296,11 @@
     toggleShoppingItem: toggleShoppingItem,
     removeShoppingItem: removeShoppingItem,
     clearCheckedShopping: clearCheckedShopping,
-    sectionsOf: sectionsOf,
-    sectionsToText: sectionsToText,
-    addMethodSection: addMethodSection,
-    renameMethodSection: renameMethodSection,
-    removeMethodSection: removeMethodSection,
-    moveMethodSection: moveMethodSection,
-    addMethodStep: addMethodStep,
-    editMethodStep: editMethodStep,
-    removeMethodStep: removeMethodStep,
-    moveMethodStep: moveMethodStep,
-    computeDropIndex: computeDropIndex,
-    openRecipeEdit: openRecipeEdit,
-    openRecipeCook: openRecipeCook,
-    closeRecipeViews: closeRecipeViews,
+    ensureOnList: ensureOnList,
+    addToListFromInventory: addToListFromInventory,
+    openSheet: openSheet,
+    closeSheet: closeSheet,
+    saveSheet: saveSheet,
     enqueue: enqueue,
     flush: flush,
     reconcile: reconcile,
@@ -2683,12 +2312,12 @@
       opts = opts || {};
       flushGen++;
       state.items = opts.items || [];
-      state.recipes = opts.recipes || [];
-      state.recipeItems = opts.recipeItems || [];
       state.shoppingCategories = opts.shoppingCategories || [];
       state.shoppingItems = opts.shoppingItems || [];
       state.queue = opts.queue || [];
       state.syncing = false;
+      state.blocked = 0;
+      invSearch = '';
       persist();
       renderAll();
     }

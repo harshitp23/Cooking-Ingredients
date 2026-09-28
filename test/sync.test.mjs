@@ -77,3 +77,44 @@ test('create-then-delete while offline sends nothing to the server', async (t) =
   K.deleteItem(row.id);
   assert.equal(K.state.queue.length, 0, 'insert + delete cancel out');
 });
+
+test('a schema error (migration not run) parks that row\'s ops without jamming the rest', async (t) => {
+  const { K, window } = await loadApp();
+  t.after(() => window.close());
+
+  const snack = item('s', 'Chips', { kind: 'snack', qty: 1 });
+  const milk = item('m', 'Milk');
+  K._reset({
+    items: [snack, milk],
+    queue: [
+      { opId: 'o1', table: 'kitchen_items', kind: 'insert', row: snack },
+      { opId: 'o2', table: 'kitchen_items', kind: 'update', id: 's', patch: { qty: 2 } },
+      { opId: 'o3', table: 'kitchen_items', kind: 'insert', row: milk },
+    ],
+  });
+
+  const sent = [];
+  const send = async (op) => {
+    sent.push(op.opId);
+    if (op.row && op.row.kind === 'snack') {
+      const e = new Error('new row violates check constraint');
+      e.code = '23514';
+      throw e;
+    }
+  };
+  const res = await K.flush(send);
+  assert.deepEqual(sent, ['o1', 'o3'], 'same-row update held back; other rows still flow');
+  assert.deepEqual(K.state.queue.map((o) => o.opId), ['o1', 'o2'], 'parked ops kept for a later retry');
+  assert.equal(res.blocked, 2);
+  assert.equal(K.state.blocked, 2);
+});
+
+test('isSchemaError only matches schema-shaped failures', async (t) => {
+  const { K, window } = await loadApp();
+  t.after(() => window.close());
+
+  assert.equal(K.isSchemaError({ code: 'PGRST204' }), true);
+  assert.equal(K.isSchemaError({ code: '42703' }), true);
+  assert.equal(K.isSchemaError(new Error('Failed to fetch')), false);
+  assert.equal(K.isSchemaError({ code: '401' }), false);
+});

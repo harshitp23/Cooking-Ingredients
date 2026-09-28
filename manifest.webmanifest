@@ -1,13 +1,13 @@
 {
   "name": "Kitchen Inventory",
   "short_name": "Kitchen",
-  "description": "Kitchen inventory and shopping list",
+  "description": "Kitchen inventory — ingredients, snacks, equipment — and a shopping list",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#e7552d",
+  "background_color": "#f5f5f2",
+  "theme_color": "#f5f5f2",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

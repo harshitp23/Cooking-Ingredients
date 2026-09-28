@@ -13,29 +13,27 @@ export const item = (id, name, over = {}) => ({
   ...over,
 });
 
-export const recipe = (id, name, over = {}) => ({
+// A counted row (snack / equipment). Pass `qty: undefined` via `over` to
+// simulate a row fetched before the qty migration ran.
+export const counted = (id, name, kind, qty, over = {}) =>
+  item(id, name, { kind, qty, state: qty > 0 ? 'have' : 'out', ...over });
+
+export const shopCat = (id, name, over = {}) => ({
   id,
   user_id: 'u1',
   name,
-  notes: null,
-  instructions: null,
-  servings: null,
+  sort_order: 1,
   created_at: '2026-01-01T00:00:00.000Z',
-  updated_at: '2026-01-01T00:00:00.000Z',
   ...over,
 });
 
-// Recipe ingredient line. `name` is free text matched live against inventory
-// item names (see findInventoryMatch) — item_id is legacy/unused by new code,
-// only set via `over` when a test specifically wants to exercise that path
-// (e.g. deleteItem's cascade cleanup for old linked rows).
-export const line = (id, recipeId, name, over = {}) => ({
+export const shopItem = (id, categoryId, name, over = {}) => ({
   id,
   user_id: 'u1',
-  recipe_id: recipeId,
-  item_id: null,
+  category_id: categoryId,
   name,
-  display_qty: null,
+  qty: null,
+  checked: false,
   sort_order: 1,
   created_at: '2026-01-01T00:00:00.000Z',
   ...over,
